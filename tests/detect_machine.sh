@@ -123,6 +123,7 @@ case $(hostname -f) in
 esac
 
 # Overwrite auto-detect with NEMS_MACHINE if set
+NEMS_MACHINE=linux.gnu
 MACHINE_ID=${NEMS_MACHINE:-${MACHINE_ID}}
 
 # For Theia and Cheyenne, append compiler
