@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eux
+set -eu
 SECONDS=0
 hostname
 
@@ -10,7 +10,7 @@ error() {
 }
 
 usage() {
-  set +x
+  #set +x
   echo
   echo "Usage: $program -n <test-name> [ -c <baseline-cases> | -r <unit-test-cases> ] [-e] [-k] [-h]"
   echo
@@ -41,7 +41,7 @@ usage() {
   echo "      'utest -n fv3_control -r thread,decomp' runs thread,decomp for fv3_control"
   echo "      'utest -n fv3_stochy -r restart' runs restart for fv3_stochy"
   echo
-  set -x
+  #set -x
 }
 
 usage_and_exit() {
@@ -568,7 +568,7 @@ if [[ $CREATE_BASELINE == true ]]; then
   mkdir -p $NEW_BASELINE  
 
   rsync -a "${RTPWD}"/FV3_* "${NEW_BASELINE}"/
-  rsync -a "${RTPWD}"/WW3_* "${NEW_BASELINE}"/
+  #rsync -a "${RTPWD}"/WW3_* "${NEW_BASELINE}"/
 fi
 
 # unittest_log is different from REGRESSIONTEST_LOG

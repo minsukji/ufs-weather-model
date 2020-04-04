@@ -1,0 +1,7 @@
+dist: trusty
+
+services:
+  - docker
+
+script:
+  - docker build -t ufs-weather-model-ci .
