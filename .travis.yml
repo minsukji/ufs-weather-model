@@ -8,4 +8,4 @@ branches:
     - feature/travisCI
 
 script:
-  - docker build -t ufs-weather-model-ci .
+  - travis_wait 45 docker build -t ufs-weather-model-ci .
