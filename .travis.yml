@@ -3,5 +3,9 @@ dist: trusty
 services:
   - docker
 
+branches:
+  only:
+    - feature/travisCI
+
 script:
   - docker build -t ufs-weather-model-ci .
