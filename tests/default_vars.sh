@@ -179,7 +179,7 @@ export NPZP=65
 export NSTF_NAME=2,1,1,0,5
 export FDIAG=0,1,2,3,4,5,6,7,8,9,10,11,12,15,18,21,24
 export NFHOUT=3
-export NFHMAX_HF=12
+export NFHMAX_HF=0
 export NFHOUT_HF=1
 export FNALBC="'global_snowfree_albedo.bosu.t126.384.190.rg.grb',"
 export FNVETC="'global_vegtype.igbp.t126.384.190.rg.grb',"
@@ -196,6 +196,7 @@ export SHOUR=00
 #export FHMAX=${FHMAX:-`expr $DAYS \* 24`}
 export FHMAX=4
 export DAYS=0.1667
+export NFHOUT=$FHMAX
 export DT_ATMOS=1800
 export FHCYC=24
 
