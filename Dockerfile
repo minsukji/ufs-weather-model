@@ -6,5 +6,5 @@ USER tester
 ENV HOME /home/tester
 
 RUN mkdir ${HOME}/stmp2 && mkdir ${HOME}/stmp4
-RUN . /etc/bashrc && export USER=tester && cd ${HOME}/ufs-weather-model/tests && ./utest -n fv3_control -c std,debug \
- && ./utest -n fv3_control -r std,restart,debug && ./gitHubActionsTest.sh
+RUN . /etc/bashrc && export USER=tester && cd ${HOME}/ufs-weather-model/tests && ./utest -n fv3_control -c std,32bit,debug \
+ && ./utest -n fv3_control -r std,restart,32bit,debug && ./gitHubActionsTest.sh
