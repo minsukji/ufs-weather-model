@@ -15,7 +15,7 @@ jobs:
 
     - shell: bash
       run: |
-        sed -i "9s/.*/'RUN . \/etc\/bashrc \&\& export USER=tester \&\& cd \${HOME}\/ufs-weather-model\/tests \&\& .\/utest -n fv3_control -c std,restart \\\'/" Dockerfile
+        sed -i "9s/.*/'RUN . \/etc\/bashrc \&\& export USER=tester \&\& cd \${HOME}\/ufs-weather-model\/tests \&\& .\/utest -n fv3_control -c std \\\'/" Dockerfile
         sed -i "10s/.*/' \&\& .\/utest -n fv3_control -r std,restart \&\& .\/gitHubActionsTest.sh'/" Dockerfile
         sed -i "s/^'//g" Dockerfile
         sed -i "s/'$//g" Dockerfile
