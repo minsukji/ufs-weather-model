@@ -22,4 +22,5 @@ jobs:
     - name: Run docker stats
       run: ./tests/check_memory.sh
 
-    - name: docker logs -f $(docker ps --format "{{.ID}}")
+    - name: Display results
+      run: docker logs -f $(docker ps --format "{{.ID}}")
