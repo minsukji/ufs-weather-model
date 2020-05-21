@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   job_1:
-    name: std restart
+    name: std
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -13,52 +13,11 @@ jobs:
     - name: Checkout submodules
       run: git submodule update --init --recursive
 
-    - shell: bash
-      run: |
-        sed -i "9s/.*/'RUN . \/etc\/bashrc \&\& export USER=tester \&\& cd \${HOME}\/ufs-weather-model\/tests \&\& .\/utest -n fv3_control -c std \\\'/" Dockerfile
-        sed -i "10s/.*/' \&\& .\/utest -n fv3_control -r std,restart \&\& .\/gitHubActionsTest.sh'/" Dockerfile
-        sed -i "s/^'//g" Dockerfile
-        sed -i "s/'$//g" Dockerfile
-
     - name: Build docker image
       run: docker build -t ufs-weather-model-ci .
 
-  job_2:
-    name: 32bit
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+    - name: Run docker image
+      run: docker -d ufs-weather-model-ci
 
-    - name: Checkout submodules
-      run: git submodule update --init --recursive
-
-    - shell: bash
-      run: |
-        sed -i "9s/.*/'RUN . \/etc\/bashrc \&\& export USER=tester \&\& cd \${HOME}\/ufs-weather-model\/tests \&\& .\/utest -n fv3_control -c 32bit \\\'/" Dockerfile
-        sed -i "10s/.*/' \&\& .\/utest -n fv3_control -r 32bit \&\& .\/gitHubActionsTest.sh'/" Dockerfile
-        sed -i "s/^'//g" Dockerfile
-        sed -i "s/'$//g" Dockerfile
-
-    - name: Build docker image
-      run: docker build -t ufs-weather-model-ci .
-
-  job_3:
-    name: debug
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Checkout submodules
-      run: git submodule update --init --recursive
-
-    - shell: bash
-      run: |
-        sed -i "9s/.*/'RUN . \/etc\/bashrc \&\& export USER=tester \&\& cd \${HOME}\/ufs-weather-model\/tests \&\& .\/utest -n fv3_control -c debug \\\'/" Dockerfile
-        sed -i "10s/.*/' \&\& .\/utest -n fv3_control -r debug \&\& .\/gitHubActionsTest.sh'/" Dockerfile
-        sed -i "s/^'//g" Dockerfile
-        sed -i "s/'$//g" Dockerfile
-
-    - name: Build docker image
-      run: docker build -t ufs-weather-model-ci .
+    - name: Run docker stats
+      run: docker stats --no-stream
