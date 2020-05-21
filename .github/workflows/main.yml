@@ -17,7 +17,7 @@ jobs:
       run: docker build -t ufs-weather-model-ci .
 
     - name: Run docker image
-      run: docker run -d ufs-weather-model-ci
+      run: docker run -it ufs-weather-model-ci
 
     - name: Run docker stats
       run: ./tests/check_memory.sh
