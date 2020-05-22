@@ -20,7 +20,7 @@ jobs:
       run: docker run -d ufs-weather-model-ci
 
     - name: Run docker stats
-      run: ./tests/check_memory.sh
+      run: ./tests/check_memory.sh &
 
     - name: Display results
       run: docker logs -f $(docker ps --format "{{.ID}}")

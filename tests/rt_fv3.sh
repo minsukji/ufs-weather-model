@@ -76,8 +76,7 @@ atparse < ${PATHTR}/parm/${NEMS_CONFIGURE:-nems.configure} > nems.configure
 ################################################################################
 
 if [[ $SCHEDULER = 'none' ]]; then
-  #mpiexec -n 12 -exitinfo ./fv3.exe >out 2>err
-  mpiexec -n 18 -exitinfo ./fv3.exe
+  mpiexec -n 12 -exitinfo ./fv3.exe >out 2>err
 else
 if [[ $ROCOTO = 'false' ]]; then
   submit_and_wait job_card
