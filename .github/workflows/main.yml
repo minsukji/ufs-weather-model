@@ -24,3 +24,8 @@ jobs:
 
     - name: Display results
       run: docker logs -f $(docker ps --format "{{.ID}}")
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact
+        path: mem.txt
