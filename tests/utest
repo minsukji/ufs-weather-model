@@ -1,5 +1,7 @@
 #!/bin/bash
 set -eu
+
+exec 3>&2
 SECONDS=0
 hostname
 
@@ -242,7 +244,8 @@ run_utests() {
       echo "Running test for $rc with"
       echo "    THRD: $THRD; INPES: $INPES; JNPES: $JNPES; TASKS: $TASKS; TPN: $TPN; NODES: $NODES"
       TEST_NR=${RT_SUFFIX:1}
-      ./run_test.sh $PATHRT $RUNDIR_ROOT $TEST_NAME $TEST_NR $comp_nm > $LOG_DIR/run_${TEST_NAME}_${TEST_NR}.log 2>&1
+      #./run_test.sh $PATHRT $RUNDIR_ROOT $TEST_NAME $TEST_NR $comp_nm > $LOG_DIR/run_${TEST_NAME}_${TEST_NR}.log 2>&1
+      ./run_test.sh $PATHRT $RUNDIR_ROOT $TEST_NAME $TEST_NR $comp_nm >$LOG_DIR/run_${TEST_NAME}_${TEST_NR}.log 2> >(tee -a $LOG_DIR/run_${TEST_NAME}_${TEST_NR}.log >&3)
     fi
 
   done

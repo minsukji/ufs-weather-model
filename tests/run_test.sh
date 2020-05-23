@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eux
+set -eu
 
 write_fail_test() {
   if [[ ${UNIT_TEST} == true ]]; then
@@ -52,7 +52,8 @@ echo "Test ${TEST_NR} ${TEST_NAME} ${TEST_DESCR}"
 trap 'echo "run_test.sh: Test ${TEST_NAME} killed"; kill $(jobs -p); wait; trap 0; exit' 1 2 3 4 5 6 7 8 10 12 13 15
 trap '[ "$?" -eq 0 ] || write_fail_test' EXIT
 
-./${RUN_SCRIPT} > ${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log 2>&1
+#./${RUN_SCRIPT} > ${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log 2>&1
+./${RUN_SCRIPT} >${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log 2> >(tee -a ${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log >&3)
 
 elapsed=$SECONDS
 echo "Elapsed time $elapsed seconds. Test ${TEST_NAME}"

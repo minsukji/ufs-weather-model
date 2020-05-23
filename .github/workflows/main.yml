@@ -21,8 +21,3 @@ jobs:
 
     - name: Display results
       run: docker logs -f $(docker ps --format "{{.ID}}")
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: mpi-error
-        path: /home/tester/ufs-weather-model/tests/err
