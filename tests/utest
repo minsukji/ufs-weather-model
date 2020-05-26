@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eu
+exec 3>&2
 SECONDS=0
 hostname
 
@@ -310,6 +311,15 @@ if [[ $MACHINE_ID = hera.* ]]; then
   PTMP=${dprefix}/stmp2
   SCHEDULER=slurm
   cp fv3_conf/fv3_slurm.IN_hera fv3_conf/fv3_slurm.IN
+elif [[ $MACHINE_ID = linux.* ]]; then
+  NEMS_COMPILER=gnu
+  COMPILER=gnu
+  QUEUE=debug
+  dprefix=/home/tester
+  DISKNM=${dprefix}/data
+  STMP=${dprefix}/stmp4
+  PTMP=${dprefix}/stmp2
+  SCHEDULER=none
 else
   error "Unknown machine ID. Edit detect_machine.sh file"
 fi
@@ -322,6 +332,8 @@ TEST_NAME=
 keep_rundir=false
 ROCOTO=false
 ECFLOW=false
+skip_compile=false
+skip_run=false
 
 # Parse command line arguments
 while getopts :c:r:n:ekh opt; do
@@ -541,7 +553,8 @@ for name in $ut_compile_cases; do
     ecflow_create_compile_task
   else
     echo "Compiling for ${name} with compile option ${NEMS_VER}"
-    ./compile.sh $PATHTR/FV3 $MACHINE_ID "${NEMS_VER}" $name >${LOG_DIR}/compile_${TEST_NAME}_$name.log 2>&1
+    #./compile.sh $PATHTR/FV3 $MACHINE_ID "${NEMS_VER}" $name >${LOG_DIR}/compile_${TEST_NAME}_$name.log 2>&1
+    ./compile_cmake.sh $PATHTR $MACHINE_ID "${NEMS_VER}" $name >${LOG_DIR}/compile_${TEST_NAME}_$name.log 2>&1
     echo "Compiling done for ${name}"
   fi
 done

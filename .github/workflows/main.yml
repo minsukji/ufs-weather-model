@@ -1,0 +1,24 @@
+name: Build Utest
+
+on: [push, pull_request]
+
+jobs:
+  job_1:
+    name: std 
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Build docker image
+      run: docker build -t ufs-weather-model-ci .
+
+    - name: Run docker image
+      run: docker run -d ufs-weather-model-ci
+
+    - name: Display results
+      run: docker logs -f $(docker ps --format "{{.ID}}")
+
