@@ -1,6 +1,8 @@
 name: Build Utest
 
 on: [push, pull_request]
+  branches:
+    -feature/travisCI
 
 jobs:
   job_1:
