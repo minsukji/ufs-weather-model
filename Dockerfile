@@ -1,6 +1,6 @@
-From develop-20200202-fv3-input:v1 AS dataBase
+From minsukjinoaa/develop-20200202-fv3-input:v1 AS dataBase
 
-From utest-base:v2
+From minsukjinoaa/utest-base:v2
 
 ENV HOME=/home/tester
 
