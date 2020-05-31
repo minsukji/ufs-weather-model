@@ -1,8 +1,6 @@
 name: Build Utest
 
 on: [push, pull_request]
-  branches:
-    -feature/travisCI
 
 jobs:
   job_1:
@@ -16,11 +14,10 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Build docker image
-      run: docker build -t ufs-weather-model-ci .
+      run: cd tests && ./ci.sh -b -c restart
+
+    - name: Clean up intermediaries
+      run: docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
 
     - name: Run docker image
-      run: docker run -d ufs-weather-model-ci
-
-    - name: Display results
-      run: docker logs -f $(docker ps --format "{{.ID}}")
-
+      run: cd tests && ./ci.sh -r

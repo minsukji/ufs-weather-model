@@ -41,6 +41,13 @@ elif [[ $MACHINE_ID = hera.* ]]; then
   TASKS_stretch=48 ; TPN_stretch=12 ; INPES_stretch=2 ; JNPES_stretch=4
   TASKS_strnest=96 ; TPN_strnest=12 ; INPES_strnest=2 ; JNPES_strnest=4
 
+elif [[ $MACHINE_ID = linux.* ]]; then
+
+  TASKS_dflt=12 ; TPN_dflt=16 ; INPES_dflt=1 ; JNPES_dflt=1
+  TASKS_thrd=84  ; TPN_thrd=20 ; INPES_thrd=3 ; JNPES_thrd=4
+  TASKS_stretch=48 ; TPN_stretch=12 ; INPES_stretch=2 ; JNPES_stretch=4
+  TASKS_strnest=96 ; TPN_strnest=12 ; INPES_strnest=2 ; JNPES_strnest=4
+
 elif [[ $MACHINE_ID = jet.* ]]; then
 
   TASKS_dflt=150 ; TPN_dflt=24 ; INPES_dflt=3 ; JNPES_dflt=8
@@ -175,7 +182,7 @@ export NPZP=65
 export NSTF_NAME=2,1,1,0,5
 export FDIAG=0,1,2,3,4,5,6,7,8,9,10,11,12,15,18,21,24
 export NFHOUT=3
-export NFHMAX_HF=12
+export NFHMAX_HF=0
 export NFHOUT_HF=1
 export FNALBC="'global_snowfree_albedo.bosu.t126.384.190.rg.grb',"
 export FNVETC="'global_vegtype.igbp.t126.384.190.rg.grb',"
@@ -189,7 +196,10 @@ export SYEAR=2016
 export SMONTH=10
 export SDAY=03
 export SHOUR=00
-export FHMAX=${FHMAX:-`expr $DAYS \* 24`}
+#export FHMAX=${FHMAX:-`expr $DAYS \* 24`}
+export FHMAX=4
+export DAYS=0.1667
+export NFHOUT=$FHMAX
 export DT_ATMOS=1800
 export FHCYC=24
 
