@@ -15,7 +15,7 @@ jobs:
 
     - name: Try squash build
       run: |
-        printf '{\n    "experimental": true\n}' | sudo tee -a /etc/docker/daemon.json
+        printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
         sudo cat /etc/docker/daemon.json
         sudo systemctl restart docker
         sleep 10
@@ -33,5 +33,8 @@ jobs:
         docker image ls
         df -h
 
-    - name: Run docker image
-      run: cd tests && ./ci.sh -r
+    #- name: Run docker image
+    #  run: cd tests && ./ci.sh -r
+
+    - name: Some further tests
+      run: echo $(pwd)

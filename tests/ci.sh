@@ -4,7 +4,6 @@ set -eux
 check_memory_usage() {
   dirName=/sys/fs/cgroup/memory/docker/$1
   # /sys/fs/cgroup/memory/actions_job/${containerID}
-  # /sys/fs/cgroup/memory/docker/${containerID}
   set +x
   while [ -d $dirName ] ; do
     awk '/(^cache |^rss |^shmem )/' $dirName/memory.stat | cut -f2 -d' ' | paste -s -d,
