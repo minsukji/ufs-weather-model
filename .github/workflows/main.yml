@@ -21,7 +21,7 @@ jobs:
         sleep 10
         
     - name: Build docker image
-      run: cd tests && ./ci.sh -b -c debug
+      run: cd tests && ./ci.sh -b -c restart
 
     - name: Clean up intermediaries
       run: |
@@ -37,6 +37,7 @@ jobs:
       run: cd tests && ./ci.sh -r
 
     - name: Some further tests
+      if: ${{ always() }}
       run: |
         echo $(pwd)
         ls -a /home/runner/work/ufs-weather-model
@@ -44,6 +45,7 @@ jobs:
         df -h
 
     - name: Upload memory usage
+      if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
         name: memory-statistics
