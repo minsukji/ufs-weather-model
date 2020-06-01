@@ -17,7 +17,8 @@ jobs:
       run: cd tests && ./ci.sh -b -c restart
 
     - name: Clean up intermediaries
-      run: docker images; docker ps -a -q; docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
+      #run: docker images; docker ps -a -q; docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
+      run: docker rmi minsukjinoaa/develop-20200202-fv3-input minsukjinoaa/utest-base; docker images
 
     - name: Run docker image
       run: cd tests && ./ci.sh -r
