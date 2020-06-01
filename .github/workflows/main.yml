@@ -41,6 +41,7 @@ jobs:
         echo $(pwd)
         ls -a /home/runner/work/ufs-weather-model
         ls -a /home/runner/work/ufs-weather-model/ufs-weather-model
+        df -h
 
     - name: Upload memory usage
       uses: actions/upload-artifact@v2
