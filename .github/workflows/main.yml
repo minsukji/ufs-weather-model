@@ -33,8 +33,17 @@ jobs:
         docker image ls
         df -h
 
-    #- name: Run docker image
-    #  run: cd tests && ./ci.sh -r
+    - name: Run docker image
+      run: cd tests && ./ci.sh -r
 
     - name: Some further tests
-      run: echo $(pwd)
+      run: |
+        echo $(pwd)
+        ls -a /home/runner/work/ufs-weather-model
+        ls -a /home/runner/work/ufs-weather-model/ufs-weather-model
+
+    - name: Upload memory usage
+      uses: actions/upload-artifact@v2
+      with:
+        name: memory-statistics
+        path: tests/memory-stat.txt
