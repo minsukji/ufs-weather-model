@@ -18,11 +18,10 @@ jobs:
 
     - name: Clean up intermediaries
       run: |
-            imageIDs=$(docker image ls | grep -e '(develop | utest)' | awk '{print $3}')
-            docker rmi $imageIDs
-            docker image ls
-            #docker images; docker ps -a -q; docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
-      #run: docker rmi minsukjinoaa/develop-20200202-fv3-input minsukjinoaa/utest-base; docker images
+        sudo docker rmi $(sudo docker image ls | grep -e '(develop|utest)' | awk '{print $3}')
+        sudo docker image ls
+        #docker images; docker ps -a -q; docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
+        #run: docker rmi minsukjinoaa/develop-20200202-fv3-input minsukjinoaa/utest-base; docker images
 
     - name: Run docker image
       run: cd tests && ./ci.sh -r
