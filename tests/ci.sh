@@ -87,6 +87,7 @@ if [ $BUILD = "true" ]; then
                --build-arg build_case=$BUILD_CASE \
                --build-arg run_case=$RUN_CASE \
                --no-cache \
+               --squash --compress \
                -f ../Dockerfile -t citest ..
   exit $?
 

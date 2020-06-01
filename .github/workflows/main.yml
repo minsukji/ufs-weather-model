@@ -13,6 +13,14 @@ jobs:
     - name: Checkout submodules
       run: git submodule update --init --recursive
 
+    - name: Try squash build
+      run: |
+        sudo ls /etc/docker
+        printf '{\n    "experimental": true\n}' >daemon.json
+        sudo mv daemon.json /etc/docker
+        sudo systemctl restart docker
+        sleep 10
+        
     - name: Build docker image
       run: cd tests && ./ci.sh -b -c restart
 
@@ -22,6 +30,7 @@ jobs:
         docker image ls
         docker image ls | awk '/develop/ { print $3 }'
         docker rmi $(docker image ls | awk '/develop/ { print $3 }')
+        docker rmi $(docker image ls | awk '/utest/ { print $3 }')
         docker image ls
         df -h
         #docker images; docker ps -a -q; docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
