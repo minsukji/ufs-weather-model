@@ -15,16 +15,13 @@ jobs:
 
     - name: Try squash build
       run: |
-        sudo ls /etc/docker
-        sudo cat /etc/docker/daemon.json
-        printf '{\n    "experimental": true\n}' >daemon.json
-        sudo mv daemon.json /etc/docker
+        printf '{\n    "experimental": true\n}' | sudo tee -a /etc/docker/daemon.json
         sudo cat /etc/docker/daemon.json
         sudo systemctl restart docker
         sleep 10
         
     - name: Build docker image
-      run: cd tests && ./ci.sh -b -c restart
+      run: cd tests && ./ci.sh -b -c debug
 
     - name: Clean up intermediaries
       run: |
@@ -35,8 +32,6 @@ jobs:
         docker rmi $(docker image ls | awk '/utest/ { print $3 }')
         docker image ls
         df -h
-        #docker images; docker ps -a -q; docker rm $(docker ps -a -q); imageID=$(docker images | grep -m1 '<none>' | awk '{print $3}'); docker rmi $imageID
-        #run: docker rmi minsukjinoaa/develop-20200202-fv3-input minsukjinoaa/utest-base; docker images
 
-    #- name: Run docker image
-    #  run: cd tests && ./ci.sh -r
+    - name: Run docker image
+      run: cd tests && ./ci.sh -r
