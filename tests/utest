@@ -329,8 +329,6 @@ export COMPILER=${NEMS_COMPILER:-intel}
 # detect_machine sets ACCNR and MACHINE_ID
 source detect_machine.sh
 MACHINE_ID=linux.gnu
-# utility functions in rt_utils need to be able to see variables in utest
-source rt_utils.sh
 # PATHRT - Path to unit tests directory
 readonly PATHRT=$(cd $(dirname $0) && pwd -P)
 cd $PATHRT
@@ -344,6 +342,9 @@ if mkdir $lockdir 2>/dev/null; then
 else
   error "Only one instance of utest can be running at a time"
 fi
+
+# utility functions in rt_utils need to be able to see variables in utest
+source rt_utils.sh
 
 # Machine-dependent libraries, modules, variables, etc.
 if [[ $MACHINE_ID = hera.* ]]; then
