@@ -15,7 +15,6 @@ ENV test_name=$test_name
 ENV build_case=$build_case
 ENV run_case=$run_case
 
-RUN mkdir $HOME/stmp2 && mkdir $HOME/stmp4
 WORKDIR $HOME/ufs-weather-model/tests
 RUN ./utest -n $test_name -c $build_case -z
 CMD ./utest -n $test_name -c $build_case -x && ./utest -n $test_name -r $run_case -x
