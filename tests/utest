@@ -664,7 +664,7 @@ set +e
 if [[ $skip_compile == false ]]; then
   cat ${LOG_DIR}/compile_*.log > ${compile_log}
 fi
-cat ${LOG_DIR}/ut_*.log >> ${unittest_log}
+cat ${LOG_DIR}/ut_*.log | tee -a ${unittest_log}
 
 if [[ -e fail_unit_test ]]; then
   echo "FAILED TESTS: " | tee -a ${unittest_log}

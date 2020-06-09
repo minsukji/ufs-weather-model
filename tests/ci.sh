@@ -12,6 +12,7 @@ check_memory_usage() {
   set -x
 }
 
+IMG_NAME=ci-test-weather
 CASE=""
 BUILD="false"
 RUN="false"
@@ -82,16 +83,18 @@ if [ $BUILD = "true" ]; then
       exit 2
   esac
 
+  sed -i -e '/affinity.c/d' ../CMakeLists.txt
+
   docker build --build-arg test_name=$TEST_NAME \
                --build-arg build_case=$BUILD_CASE \
                --build-arg run_case=$RUN_CASE \
                --no-cache \
                --squash --compress \
-               -f ../Dockerfile -t citest ..
+               -f ../Dockerfile -t ${IMG_NAME} ..
   exit $?
 
 elif [ $RUN == "true" ]; then
-  docker run -d citest
+  docker run -d ${IMG_NAME}
   echo 'cache,rss,shmem' >memory-stat.txt
   sleep 3
   containerID=$(docker ps -q --no-trunc)
