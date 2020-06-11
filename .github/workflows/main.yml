@@ -5,16 +5,13 @@ on: [push, pull_request]
 jobs:
   job_1:
     name: restart
-    #runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
     steps:
-    - name: Checkout
+    - name: Checkout codes
       uses: actions/checkout@v2
       with:
         submodules: recursive
-
-#    - name: Checkout submodules
-#      run: git submodule update --init --recursive
 
     - name: Try squash build
       run: |
