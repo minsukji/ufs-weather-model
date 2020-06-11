@@ -17,11 +17,11 @@ pipeline {
 
     stage('Free up space') {
       steps {
-        sh 'docker image ls'
-        sh 'docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')'
-        sh 'docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')'
-        sh 'docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')'
-        sh 'docker image ls'
+        sh "docker image ls"
+        sh "docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')"
+        sh "docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')"
+        sh "docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')"
+        sh "docker image ls"
       }
     }
 
