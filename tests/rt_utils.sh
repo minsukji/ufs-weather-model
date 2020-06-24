@@ -198,14 +198,12 @@ submit_and_wait() {
   if [[ $test_status = 'FAIL' ]]; then
     if [[ ${UNIT_TEST} == false ]]; then
       echo "${TEST_NAME} ${TEST_NR}" >> $PATHRT/fail_test
-      if [[ $ROCOTO == true || $ECFLOW == true ]]; then
-        exit 1
-      fi
     else
       echo ${TEST_NR} $TEST_NAME >> $PATHRT/fail_unit_test
-      if [[ $ROCOTO == true || $ECFLOW == true ]]; then
-        exit 1
-      fi
+    fi
+
+    if [[ $ROCOTO == true || $ECFLOW == true ]]; then
+      exit 1
     fi
   fi
 
@@ -321,14 +319,12 @@ check_results() {
   if [[ $test_status = 'FAIL' ]]; then
     if [[ ${UNIT_TEST} == false ]]; then
       echo $TEST_NAME >> $PATHRT/fail_test
-      if [[ $ROCOTO = true || $ECFLOW == true ]]; then
-        exit 1
-      fi
     else
       echo ${TEST_NR} $TEST_NAME >> $PATHRT/fail_unit_test
-      if [[ $ROCOTO = true || $ECFLOW == true ]]; then
-        exit 1
-      fi
+    fi
+
+    if [[ $ROCOTO = true || $ECFLOW == true ]]; then
+      exit 1
     fi
   fi
 

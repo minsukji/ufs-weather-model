@@ -182,8 +182,8 @@ elif [[ $MACHINE_ID = hera.* ]]; then
   ECFLOW_START=/scratch2/NCEPDEV/fv3-cam/Dusan.Jovic/ecflow/bin/ecflow_start.sh
   ECF_PORT=$(( $(id -u) + 1500 ))
 
-  QUEUE=debug
-  COMPILE_QUEUE=debug
+  QUEUE=batch
+  COMPILE_QUEUE=batch
 
 #  ACCNR=fv3-cpu
   PARTITION=
@@ -378,9 +378,9 @@ while getopts ":cfsl:mkreh" opt; do
 done
 
 if [[ $MACHINE_ID = hera.* ]] || [[ $MACHINE_ID = orion.* ]] || [[ $MACHINE_ID = cheyenne.* ]]; then
-  RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200512/${COMPILER^^}}
+  RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200611/${COMPILER^^}}
 else
-  RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200512}
+  RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200611}
 fi
 
 shift $((OPTIND-1))
