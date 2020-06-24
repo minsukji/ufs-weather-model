@@ -370,6 +370,8 @@ if [[ $MACHINE_ID = hera.* ]]; then
   PTMP=${dprefix}/stmp2
   SCHEDULER=slurm
   cp fv3_conf/fv3_slurm.IN_hera fv3_conf/fv3_slurm.IN
+  cp fv3_conf/compile_slurm.IN_hera fv3_conf/compile_slurm.IN
+
 elif [[ $MACHINE_ID = linux.* ]]; then
   NEMS_COMPILER=gnu
   COMPILER=gnu
@@ -379,6 +381,7 @@ elif [[ $MACHINE_ID = linux.* ]]; then
   STMP=${dprefix}/stmp4
   PTMP=${dprefix}/stmp2
   SCHEDULER=none
+
 else
   error "unknown machine ID. edit detect_machine.sh file"
 fi
@@ -490,8 +493,6 @@ if [[ $run_case =~ std && ! $run_case =~ ^std ]]; then
   run_case=$(echo $run_case | sed -e 's/ std//')
   run_case="std $run_case"
 fi
-echo "cases to compile: $compile_case"
-echo "cases to run: $run_case"
 
 # log directory
 LOG_DIR=${PATHRT}/log_ut_$MACHINE_ID
@@ -551,7 +552,11 @@ if [[ $skip_compile == true ]]; then
     exit $num_of_missing_exe
   fi
 else
+  echo "cases to compile: $compile_case"
   build_utests
+  if [[ $ECFLOW == false ]]; then
+    cat ${LOG_DIR}/compile_*.log > ${compile_log}
+  fi
 fi
 
 # if skipping run, stop after build. print out status information and
@@ -588,6 +593,7 @@ ln -s ${RTPWD}/FV3_input_data ${NEW_BASELINE}
 unittest_log=${PATHRT}/UnitTests_$MACHINE_ID.log
 rm -f fail_unit_test ${unittest_log}
 
+echo "cases to run: $run_case"
 run_utests
 
 if [[ $ECFLOW == true ]]; then
@@ -599,7 +605,7 @@ fi
 ####                       UNIT TEST STATUS                         ####
 ########################################################################
 set +e
-if [[ $skip_compile == false ]]; then
+if [[ $ECFLOW == true ]]; then
   cat ${LOG_DIR}/compile_*.log > ${compile_log}
 fi
 cat ${LOG_DIR}/ut_*.log | tee -a ${unittest_log}

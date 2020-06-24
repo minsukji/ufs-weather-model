@@ -13,12 +13,10 @@ check_memory_usage() {
 }
 
 IMG_NAME=ci-test-weather
-CASE=""
 BUILD="false"
 RUN="false"
 TEST_NAME=""
-BUILD_CASE=""
-RUN_CASE=""
+TEST_CASE=""
 
 # Read in TEST_NAME
 source ci.test
@@ -26,7 +24,7 @@ source ci.test
 while getopts :c:br opt; do
   case $opt in
     c)
-      CASE=$OPTARG
+      TEST_CASE=$OPTARG
       ;;
     b)
       BUILD="true"
@@ -53,41 +51,10 @@ if [ $RUN = "true" ] && [ Q$CASE != Q"" ]; then
 fi
 
 if [ $BUILD = "true" ]; then
-  case $CASE in
-    restart)
-      BUILD_CASE=std
-      RUN_CASE=restart
-      ;;
-    thread)
-      BUILD_CASE=std
-      RUN_CASE=thread
-      ;;
-    mpi)
-      BUILD_CASE=std
-      RUN_CASE=mpi
-      ;;
-    decomp)
-      BUILD_CASE=std
-      RUN_CASE=decomp
-      ;;
-    debug)
-      BUILD_CASE=debug
-      RUN_CASE=debug
-      ;;
-    32bit)
-      BUILD_CASE=32bit
-      RUN_CASE=32bit
-      ;;
-    *)
-      echo Wrong case to run
-      exit 2
-  esac
-
   sed -i -e '/affinity.c/d' ../CMakeLists.txt
 
   docker build --build-arg test_name=$TEST_NAME \
-               --build-arg build_case=$BUILD_CASE \
-               --build-arg run_case=$RUN_CASE \
+               --build-arg test_case=$TEST_CASE \
                --no-cache \
                --squash --compress \
                -f ../Dockerfile -t ${IMG_NAME} ..
@@ -101,4 +68,5 @@ elif [ $RUN == "true" ]; then
   check_memory_usage $containerID >>memory-stat.txt &
   docker logs -f $containerID
   exit $(docker inspect $containerID --format='{{.State.ExitCode}}')
+
 fi
