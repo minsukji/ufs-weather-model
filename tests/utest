@@ -375,6 +375,7 @@ if [[ $MACHINE_ID = hera.* ]]; then
 elif [[ $MACHINE_ID = linux.* ]]; then
   NEMS_COMPILER=gnu
   COMPILER=gnu
+  PARTITION=
   QUEUE=debug
   dprefix=/home/tester
   DISKNM=${dprefix}/data

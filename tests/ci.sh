@@ -40,13 +40,13 @@ if [ $BUILD = "true" ] && [ $RUN = "true" ]; then
   exit 2
 fi
 
-if [ $BUILD = "true" ] && [ Q$CASE = Q"" ]; then
-  echo "Build option (-b) should accompany CASE option (-c)"
+if [ $BUILD = "true" ] && [ Q$TEST_CASE = Q"" ]; then
+  echo "Build option (-b) should accompany TEST_CASE option (-c)"
   exit 2
 fi
 
-if [ $RUN = "true" ] && [ Q$CASE != Q"" ]; then
-  echo "Run option (-r) should not accompany CASE option (-c)"
+if [ $RUN = "true" ] && [ Q$TEST_CASE != Q"" ]; then
+  echo "Run option (-r) should not accompany TEST_CASE option (-c)"
   exit 2
 fi
 
