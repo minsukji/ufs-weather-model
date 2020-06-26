@@ -62,7 +62,7 @@ build_utests() {
       model_found=true
       break
     fi
-  done < $build_file
+  done <$build_file
 
   if [[ $model_found == false ]]; then
     error "build options for $TEST_NAME not found. please edit utest.bld"
@@ -288,7 +288,7 @@ run_utests() {
       TEST_NR=${RT_SUFFIX:1}
       COMPILE_NR=$comp_nm
       DEP_RUN=
-      if [[ ${RT_SUFFIX} == _thr || ${RT_SUFFIX} == _mpi || ${RT_SUFFIX} == _dcp || ${RT_SUFFIX} == rst ]]; then
+      if [[ ${RT_SUFFIX} == _thr || ${RT_SUFFIX} == _mpi || ${RT_SUFFIX} == _dcp || ${RT_SUFFIX} == _rst ]]; then
         DEP_RUN="${TEST_NAME}_std"
       else
         DEP_RUN=''
@@ -447,38 +447,14 @@ fi
 compile_case=
 run_case=
 for i in $test_case; do
-  if [[ $i == thr ]]; then
+  if [[ $i == thr || $i == mpi || $i == dcp || $i == rst ]]; then
     if [[ ! $compile_case =~ std ]]; then
       compile_case+=" std"
     fi
     if [[ ! $run_case =~ std ]]; then
       run_case+=" std"
     fi
-    run_case+=" thr"
-  elif [[ $i == mpi ]]; then 
-    if [[ ! $compile_case =~ std ]]; then
-      compile_case+=" std"
-    fi
-    if [[ ! $run_case =~ std ]]; then
-      run_case+=" std"
-    fi
-    run_case+=" mpi"
-  elif [[ $i == dcp ]]; then
-    if [[ ! $compile_case =~ std ]]; then
-      compile_case+=" std"
-    fi
-    if [[ ! $run_case =~ std ]]; then
-      run_case+=" std"
-    fi
-    run_case+=" dcp"
-  elif [[ $i == rst ]]; then
-    if [[ ! $compile_case =~ std ]]; then
-      compile_case+=" std"
-    fi
-    if [[ ! $run_case =~ std ]]; then
-      run_case+=" std"
-    fi
-    run_case+=" rst"
+    run_case+=" $i"
   elif [[ $i == bit ]]; then
     compile_case+=" bit"
     run_case+=" bit"
@@ -522,7 +498,7 @@ suite ${ECFLOW_SUITE}
   limit max_jobs 30
 EOF
   if [[ $MACHINE_ID == hera.* ]]; then
-    QUEUE=debug
+    QUEUE=batch
   else
     error "ecflow is not supported on this machine $MACHINE_ID"
   fi

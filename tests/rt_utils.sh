@@ -302,9 +302,13 @@ check_results() {
       printf %s " Moving " $i " ....."   >> ${REGRESSIONTEST_LOG}
       if [[ -f ${RUNDIR}/$i ]] ; then
         cp ${RUNDIR}/${i} ${NEW_BASELINE}/${CNTL_DIR}/${i}
+        echo "....OK" >>${REGRESSIONTEST_LOG}
+        echo "....OK"
       else
-        echo "Missing " ${RUNDIR}/$i " output file"
-        echo;echo " Set ${TEST_NR} ${TEST_NAME} failed"
+        #echo "Missing " ${RUNDIR}/$i " output file"
+        #echo;echo " Set ${TEST_NR} ${TEST_NAME} failed"
+        echo "....NOT OK. File missing" >>${REGRESSIONTEST_LOG}
+        echo "....NOT OK. File missing"
         test_status='FAIL'
       fi
     done
