@@ -88,18 +88,18 @@ build_utests() {
     esac
     NEMS_VER=$(echo $NEMS_VER | sed -e 's/^ *//' -e 's/ *$//')
 
-      cat << EOF > ${RUNDIR_ROOT}/compile_${name}.env
-      export MACHINE_ID=${MACHINE_ID}
-      export PATHRT=${PATHRT}
-      export PATHTR=${PATHTR}
-      export SCHEDULER=${SCHEDULER}
-      export ACCNR=${ACCNR}
-      export QUEUE=${QUEUE}
-      export PARTITION=${PARTITION}
-      export ROCOTO=${ROCOTO}
-      export ECFLOW=${ECFLOW}
-      export LOG_DIR=${LOG_DIR}
-EOF
+      cat <<-EOF > ${RUNDIR_ROOT}/compile_${name}.env
+				export MACHINE_ID=${MACHINE_ID}
+				export PATHRT=${PATHRT}
+				export PATHTR=${PATHTR}
+				export SCHEDULER=${SCHEDULER}
+				export ACCNR=${ACCNR}
+				export QUEUE=${QUEUE}
+				export PARTITION=${PARTITION}
+				export ROCOTO=${ROCOTO}
+				export ECFLOW=${ECFLOW}
+				export LOG_DIR=${LOG_DIR}
+				EOF
 
     if [[ $ECFLOW == true ]]; then
       COMPILE_NR=$name
@@ -107,7 +107,6 @@ EOF
       ecflow_create_compile_task
     else
       echo "compiling $name with compile option $NEMS_VER"
-      #./compile.sh $PATHTR/FV3 $MACHINE_ID "${NEMS_VER}" $name >${LOG_DIR}/compile_${TEST_NAME}_$name.log 2>&1
       ./compile_cmake.sh $PATHTR $MACHINE_ID "${NEMS_VER}" $name >${LOG_DIR}/compile_${TEST_NAME}_$name.log 2>&1
       echo "done compiling $name"
     fi
@@ -133,14 +132,17 @@ run_utests() {
       std)
         CREATE_BASELINE=true
         RTPWD=$baseline_location
+        BL_SUFFIX=_std
         cat <<-EOF > ${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					export RESTART_INTERVAL=$(( FHMAX/2 ))
 					EOF
         ;;
       thr)
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_std
         THRD=2
         # INPES is sometimes odd, so use JNPES. Make sure JNPES is divisible by THRD
         JNPES=$(( JNPES/THRD ))
@@ -149,6 +151,7 @@ run_utests() {
         NODES=$(( TASKS/TPN + 1 ))
         cat <<-EOF > ${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					export THRD=${THRD}
 					export JNPES=${JNPES}
 					export TASKS=${TASKS}
@@ -159,6 +162,7 @@ run_utests() {
       mpi)
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_std
         JNPES=$(( JNPES/2 ))
         WRITE_GROUP=2
         WRTTASK_PER_GROUP=12
@@ -166,6 +170,7 @@ run_utests() {
         NODES=$(( TASKS/TPN + 1 ))
         cat <<-EOF > ${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					export JNPES=${JNPES}
 					export WRITE_GROUP=${WRITE_GROUP}
 					export WRTTASK_PER_GROUP=${WRTTASK_PER_GROUP}
@@ -176,11 +181,13 @@ run_utests() {
       dcp)
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_std
         temp=$INPES
         INPES=$JNPES
         JNPES=$temp
         cat <<-EOF >${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					export INPES=${INPES}
 					export JNPES=${JNPES}
 					EOF
@@ -188,6 +195,7 @@ run_utests() {
       rst) # this is not going to work for regional model
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_std
         # Set up date and time of restart files for restart run
         RESTART_FILE_PREFIX="${SYEAR}${SMONTH}${SDAY}.$(printf "%02d" $(( SHOUR + FHMAX/2  )))0000"
         export RESTART_FILE_PREFIX
@@ -235,6 +243,7 @@ run_utests() {
 
         cat <<-EOF >${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					export RESTART_FILE_PREFIX=${RESTART_FILE_PREFIX}
 					export WARM_START=${WARM_START}
 					export NGGPS_IC=${NGGPS_IC}
@@ -246,43 +255,67 @@ run_utests() {
 					export LIST_FILES="${LIST_FILES}"
 					EOF
         ;;
-      bit)
+      bit_base)
         CREATE_BASELINE=true
         RTPWD=$baseline_location
-        comp_nm=$rc
+        BL_SUFFIX=_bit_base
+        comp_nm=bit
         cat <<-EOF >${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					EOF
         ;;
-      dbg)
+      bit)
+        CREATE_BASELINE=false
+        RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_bit_base
+        comp_nm=bit
+        cat <<-EOF >${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
+					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
+					EOF
+        ;;
+      dbg_base)
         CREATE_BASELINE=true
         RTPWD=$baseline_location
-        comp_nm=$rc
+        BL_SUFFIX=_dbg_base
+        comp_nm=dbg
         WLCLK=30
         cat <<-EOF >${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
+					export WLCLK=${WLCLK}
+					EOF
+        ;;
+      dbg)
+        CREATE_BASELINE=false
+        RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_dbg_base
+        comp_nm=dbg
+        WLCLK=30
+        cat <<-EOF >${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
+					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
 					export WLCLK=${WLCLK}
 					EOF
         ;;
     esac
 
-    BL_SUFFIX="_$comp_nm"
-
     cat <<- EOF > ${RUNDIR_ROOT}/run_test${RT_SUFFIX}.env
-		export MACHINE_ID=${MACHINE_ID}
-		export RTPWD=${RTPWD}
-		export PATHRT=${PATHRT}
-		export PATHTR=${PATHTR}
-		export NEW_BASELINE=${NEW_BASELINE}
-		export CREATE_BASELINE=${CREATE_BASELINE}
-		export RT_SUFFIX=${RT_SUFFIX}
-		export BL_SUFFIX=${BL_SUFFIX}
-		export SCHEDULER=${SCHEDULER}
-		export ACCNR=${ACCNR}
-		export QUEUE=${QUEUE}
-		export ROCOTO=${ROCOTO}
-		export LOG_DIR=${LOG_DIR}
-		EOF
+			export MACHINE_ID=${MACHINE_ID}
+			export RTPWD=${RTPWD}
+			export PATHRT=${PATHRT}
+			export PATHTR=${PATHTR}
+			export NEW_BASELINE=${NEW_BASELINE}
+			export CREATE_BASELINE=${CREATE_BASELINE}
+			export RT_SUFFIX=${RT_SUFFIX}
+			export BL_SUFFIX=${BL_SUFFIX}
+			export SCHEDULER=${SCHEDULER}
+			export ACCNR=${ACCNR}
+			export QUEUE=${QUEUE}
+			export ROCOTO=${ROCOTO}
+			export LOG_DIR=${LOG_DIR}
+			EOF
 
     if [[ $ECFLOW == true ]]; then
       TEST_NR=${RT_SUFFIX:1}
@@ -290,6 +323,10 @@ run_utests() {
       DEP_RUN=
       if [[ ${RT_SUFFIX} == _thr || ${RT_SUFFIX} == _mpi || ${RT_SUFFIX} == _dcp || ${RT_SUFFIX} == _rst ]]; then
         DEP_RUN="${TEST_NAME}_std"
+      elif [[ ${RT_SUFFIX} == _bit ]]; then
+        DEP_RUN="${TEST_NAME}_bit_base"
+      elif [[ ${RT_SUFFIX} == _dbg ]]; then
+        DEP_RUN="${TEST_NAME}_dbg_base"
       else
         DEP_RUN=''
       fi
@@ -326,11 +363,12 @@ readonly program=$(basename $0)
 export UNIT_TEST=true
 [[ $# -eq 0 ]] && usage_and_exit 1
 
-# Default compiler: intel
+# specify compiler
+NEMS_COMPILER=
 export COMPILER=${NEMS_COMPILER:-intel}
 # detect_machine sets ACCNR and MACHINE_ID
+NEMS_MACHINE=
 source detect_machine.sh
-#MACHINE_ID=linux.gnu
 # PATHRT - Path to unit tests directory
 readonly PATHRT=$(cd $(dirname $0) && pwd -P)
 cd $PATHRT
@@ -373,8 +411,7 @@ if [[ $MACHINE_ID = hera.* ]]; then
   cp fv3_conf/compile_slurm.IN_hera fv3_conf/compile_slurm.IN
 
 elif [[ $MACHINE_ID = linux.* ]]; then
-  NEMS_COMPILER=gnu
-  COMPILER=gnu
+  COMPILER=${NEMS_COMPILER:-intel}
   PARTITION=
   QUEUE=debug
   dprefix=/home/tester
@@ -393,12 +430,14 @@ CREATE_BASELINE=
 test_case="thr mpi dcp rst bit dbg"
 ECFLOW=false
 ROCOTO=false
+bit_compare=false
+dbg_compare=false
 keep_rundir=false
 skip_compile=false
 skip_run=false
 
 # parse command line arguments to fill-in/modify the above default variables
-while getopts :n:c:ekhxz opt; do
+while getopts :n:c:ekhbdxz opt; do
   case $opt in
     n)
       TEST_NAME=$OPTARG
@@ -419,6 +458,12 @@ while getopts :n:c:ekhxz opt; do
     k)
       keep_rundir=true
       ;;
+    b)
+      bit_compare=true
+      ;;
+    d)
+      dbg_compare=true
+      ;;
     x)
       skip_compile=true
       ;;
@@ -438,7 +483,6 @@ done
 if [[ -z $TEST_NAME ]]; then
   error "$program: test name is required. try 'utest -h' for usage"
 fi
-
 if [[ $skip_compile == true && $skip_run == true ]]; then
   error "$program: cannot skip both compile and run"
 fi
@@ -457,10 +501,16 @@ for i in $test_case; do
     run_case+=" $i"
   elif [[ $i == bit ]]; then
     compile_case+=" bit"
-    run_case+=" bit"
+    run_case+=" bit_base"
+    if [[ $bit_compare == true ]]; then
+      run_case+=" bit"
+    fi
   elif [[ $i == dbg ]]; then
     compile_case+=" dbg"
-    run_case+=" dbg"
+    run_case+=" dbg_base"
+    if [[ $dbg_compare == true ]]; then
+      run_case+=" dbg"
+    fi
   fi
 done
 compile_case=$(echo $compile_case | sed -e 's/^ *//' -e 's/ *$//')
@@ -487,16 +537,16 @@ if [[ $ECFLOW == true ]]; then
   mkdir -p ${ECFLOW_RUN}/${ECFLOW_SUITE}
   cp head.h tail.h ${ECFLOW_RUN}
   > ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
-  cat << EOF >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
-suite ${ECFLOW_SUITE}
-  edit ECF_HOME '${ECFLOW_RUN}'
-  edit ECF_INCLUDE '${ECFLOW_RUN}'
-  edit ECF_KILL_CMD kill -15 %ECF_RID% > %ECF_JOB%.kill 2>&1
-  edit ECF_TRIES 1
-  label rundir_root '${RUNDIR_ROOT}'
-  limit max_builds 6
-  limit max_jobs 30
-EOF
+  cat <<-EOF >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
+		suite ${ECFLOW_SUITE}
+		edit ECF_HOME '${ECFLOW_RUN}'
+		edit ECF_INCLUDE '${ECFLOW_RUN}'
+		edit ECF_KILL_CMD kill -15 %ECF_RID% > %ECF_JOB%.kill 2>&1
+		edit ECF_TRIES 1
+		label rundir_root '${RUNDIR_ROOT}'
+		limit max_builds 6
+		limit max_jobs 30
+		EOF
   if [[ $MACHINE_ID == hera.* ]]; then
     QUEUE=batch
   else
