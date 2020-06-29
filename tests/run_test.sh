@@ -54,6 +54,5 @@ trap '[ "$?" -eq 0 ] || write_fail_test' EXIT
 #trap 'echo "run_test.sh: Test ${TEST_NAME} error"; echo "${TEST_NAME}" >> ${PATHRT}/fail_test; trap 0; exit' ERR
 #./${RUN_SCRIPT} > ${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log 2>&1
 ./${RUN_SCRIPT} >${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log 2> >(tee -a ${RUNDIR_ROOT}/${TEST_NAME}${RT_SUFFIX}.log >&3)
-
 elapsed=$SECONDS
 echo "Elapsed time $elapsed seconds. Test ${TEST_NAME}"
