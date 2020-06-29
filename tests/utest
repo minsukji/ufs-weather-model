@@ -313,7 +313,9 @@ run_utests() {
 			export SCHEDULER=${SCHEDULER}
 			export ACCNR=${ACCNR}
 			export QUEUE=${QUEUE}
+      export PARTITION=${PARTITION}
 			export ROCOTO=${ROCOTO}
+      export ECFLOW=${ECFLOW}
 			export LOG_DIR=${LOG_DIR}
 			EOF
 
@@ -409,6 +411,34 @@ if [[ $MACHINE_ID = hera.* ]]; then
   SCHEDULER=slurm
   cp fv3_conf/fv3_slurm.IN_hera fv3_conf/fv3_slurm.IN
   cp fv3_conf/compile_slurm.IN_hera fv3_conf/compile_slurm.IN
+
+elif [[ $MACHINE_ID = orion.* ]]; then
+
+  source $PATHTR/NEMS/src/conf/module-setup.sh.inc
+
+  module use $PATHTR/modulefiles/${MACHINE_ID}
+  module load fv3
+  module load gcc/8.3.0
+
+  # Re-instantiate COMPILER in case it gets deleted by module purge
+  COMPILER=${NEMS_COMPILER:-intel}
+
+  export PATH=/work/noaa/fv3-cam/djovic/ecflow/bin:$PATH
+  export PYTHONPATH=/work/noaa/fv3-cam/djovic/ecflow/lib/python2.7/site-packages
+  ECFLOW_START=/work/noaa/fv3-cam/djovic/ecflow/bin/ecflow_start.sh
+  ECF_PORT=$(( $(id -u) + 1500 ))
+  QUEUE=batch
+  COMPILE_QUEUE=batch
+#  ACCNR= # detected in detect_machine.sh
+  PARTITION=orion
+  dprefix=/work/noaa/stmp/${USER}
+  DISKNM=/work/noaa/fv3-cam/djovic/RT
+  STMP=$dprefix/stmp
+  PTMP=$dprefix/stmp
+
+  SCHEDULER=slurm
+  cp fv3_conf/fv3_slurm.IN_orion fv3_conf/fv3_slurm.IN
+  cp fv3_conf/compile_slurm.IN_orion fv3_conf/compile_slurm.IN
 
 elif [[ $MACHINE_ID = linux.* ]]; then
   COMPILER=${NEMS_COMPILER:-intel}
@@ -549,6 +579,8 @@ if [[ $ECFLOW == true ]]; then
 		EOF
   if [[ $MACHINE_ID == hera.* ]]; then
     QUEUE=batch
+  elif [[ $MACHINE_ID == orion.* ]]; then
+    QUEUE=batch
   else
     error "ecflow is not supported on this machine $MACHINE_ID"
   fi
@@ -610,7 +642,7 @@ fi
 
 mkdir -p ${STMP}/${USER}
 NEW_BASELINE=${STMP}/${USER}/FV3_UT/UNIT_TEST
-baseline_location=$DISKNM/NEMSfv3gfs/develop-20200202
+baseline_location=$DISKNM/NEMSfv3gfs/develop-20200611/${COMPILER^^}
 RTPWD=$baseline_location
 
 rm -rf $NEW_BASELINE
