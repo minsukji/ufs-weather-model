@@ -313,9 +313,9 @@ run_utests() {
 			export SCHEDULER=${SCHEDULER}
 			export ACCNR=${ACCNR}
 			export QUEUE=${QUEUE}
-      export PARTITION=${PARTITION}
+			export PARTITION=${PARTITION}
 			export ROCOTO=${ROCOTO}
-      export ECFLOW=${ECFLOW}
+			export ECFLOW=${ECFLOW}
 			export LOG_DIR=${LOG_DIR}
 			EOF
 
