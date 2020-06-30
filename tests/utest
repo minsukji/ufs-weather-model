@@ -13,17 +13,21 @@ error() {
 usage() {
   #set +x
   echo
-  echo "Usage: $program -n <test-name> [ -c <test-case> ] [-e] [-k] [-h]"
+  echo "Usage: $program -n <test-name> [ -c <test-case> ] [-b] [-d] [-e] [-k] [-h] [-x] [-z]"
   echo
   echo "  -n  specify <test-name>"
   echo
-  echo "  -c  specify <test-case> (optional)"
+  echo "  -c  specify <test-case>"
   echo "      defaults to all test-cases: thr,mpi,dcp,rst,bit,dbg"
   echo "      comma-separated list of any combination of thr,mpi,dcp,rst,bit,dbg"
   echo
-  echo "  -e  use ecflow workflow manager (optional)"
-  echo "  -k  keep run directory (optional)"
-  echo "  -h  display this help and exit (optional)"
+  echo "  -b  test reproducibility for bit; compare against baseline"
+  echo "  -d  test reproducibility for dbg; compare against baseline"
+  echo "  -e  use ecFlow workflow manager"
+  echo "  -k  keep run directory"
+  echo "  -h  display this help and exit"
+  echo "  -x  skip compile"
+  echo "  -z  skip run"
   echo
   echo "  Examples"
   echo
