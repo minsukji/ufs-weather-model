@@ -94,10 +94,11 @@ build_utests() {
 				export PATHTR=${PATHTR}
 				export SCHEDULER=${SCHEDULER}
 				export ACCNR=${ACCNR}
-				export QUEUE=${QUEUE}
+				export QUEUE=${COMPILE_QUEUE}
 				export PARTITION=${PARTITION}
 				export ROCOTO=${ROCOTO}
 				export ECFLOW=${ECFLOW}
+				export REGRESSIONTEST_LOG=${REGRESSIONTEST_LOG}
 				export LOG_DIR=${LOG_DIR}
 				EOF
 
@@ -316,6 +317,7 @@ run_utests() {
 			export PARTITION=${PARTITION}
 			export ROCOTO=${ROCOTO}
 			export ECFLOW=${ECFLOW}
+			export REGRESSIONTEST_LOG=${REGRESSIONTEST_LOG}
 			export LOG_DIR=${LOG_DIR}
 			EOF
 
@@ -390,7 +392,6 @@ source rt_utils.sh
 
 # Machine-dependent libraries, modules, variables, etc.
 if [[ $MACHINE_ID = hera.* ]]; then
-  export NCEPLIBS=/scratch1/NCEPDEV/global/gwv/l819/lib
   source $PATHTR/NEMS/src/conf/module-setup.sh.inc
   module use $PATHTR/modulefiles/${MACHINE_ID}
   module load fv3
@@ -404,6 +405,7 @@ if [[ $MACHINE_ID = hera.* ]]; then
 
   PARTITION=
   QUEUE=debug
+  COMPILE_QUEUE=batch
   dprefix=/scratch1/NCEPDEV
   DISKNM=$dprefix/nems/emc.nemspara/RT
   STMP=${dprefix}/stmp4
@@ -439,6 +441,32 @@ elif [[ $MACHINE_ID = orion.* ]]; then
   SCHEDULER=slurm
   cp fv3_conf/fv3_slurm.IN_orion fv3_conf/fv3_slurm.IN
   cp fv3_conf/compile_slurm.IN_orion fv3_conf/compile_slurm.IN
+
+elif [[ $MACHINE_ID = wcoss_dell_p3 ]]; then
+
+  source $PATHTR/NEMS/src/conf/module-setup.sh.inc
+  module load lsf/10.1
+
+  module use $PATHTR/modulefiles/${MACHINE_ID}
+  module load fv3
+
+  module load python/2.7.14
+
+  module load ips/18.0.1.163
+  module load ecflow/4.7.1
+  ECFLOW_START=${ECF_ROOT}/intel/bin/ecflow_start.sh
+  ECF_PORT=$(grep $USER /usrx/local/sys/ecflow/assigned_ports.txt | awk '{print $2}')
+
+  DISKNM=/gpfs/dell2/emc/modeling/noscrub/emc.nemspara/RT
+  QUEUE=debug
+  COMPILE_QUEUE=dev_transfer
+  PARTITION=
+  ACCNR=GFS-DEV
+  STMP=/gpfs/dell2/stmp
+  PTMP=/gpfs/dell2/ptmp
+  SCHEDULER=lsf
+  cp fv3_conf/fv3_bsub.IN_wcoss_dell_p3 fv3_conf/fv3_bsub.IN
+  cp fv3_conf/compile_bsub.IN_wcoss_dell_p3 fv3_conf/compile_bsub.IN
 
 elif [[ $MACHINE_ID = linux.* ]]; then
   COMPILER=${NEMS_COMPILER:-intel}
@@ -581,10 +609,16 @@ if [[ $ECFLOW == true ]]; then
     QUEUE=batch
   elif [[ $MACHINE_ID == orion.* ]]; then
     QUEUE=batch
+  elif [[ $MACHINE_ID == wcoss_dell_p3 ]]; then
+    QUEUE=dev
   else
     error "ecflow is not supported on this machine $MACHINE_ID"
   fi
 fi
+
+compile_log=${PATHRT}/Compile_ut_$MACHINE_ID.log
+unittest_log=${PATHRT}/UnitTests_$MACHINE_ID.log
+REGRESSIONTEST_LOG=$unittest_log
 
 ########################################################################
 ####                            COMPILE                             ####
@@ -592,7 +626,6 @@ fi
 
 # build_file specifies compilation options
 build_file='utest.bld'
-compile_log=${PATHRT}/Compile_ut_$MACHINE_ID.log
 
 # if skipping compile, check if all required executables exist. if not,
 # exit with a non-zero number equal to the number of missing executables
@@ -642,14 +675,17 @@ fi
 
 mkdir -p ${STMP}/${USER}
 NEW_BASELINE=${STMP}/${USER}/FV3_UT/UNIT_TEST
-baseline_location=$DISKNM/NEMSfv3gfs/develop-20200611/${COMPILER^^}
+if [[ $MACHINE_ID == hera.* || $MACHINE_ID == orion.* ]]; then
+  baseline_location=$DISKNM/NEMSfv3gfs/develop-20200611/${COMPILER^^}
+else
+  baseline_location=$DISKNM/NEMSfv3gfs/develop-20200611
+fi
 RTPWD=$baseline_location
 
 rm -rf $NEW_BASELINE
 mkdir -p $NEW_BASELINE
 ln -s ${RTPWD}/FV3_input_data ${NEW_BASELINE}
 
-unittest_log=${PATHRT}/UnitTests_$MACHINE_ID.log
 rm -f fail_unit_test ${unittest_log}
 
 echo "cases to run: $run_case"
