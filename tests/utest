@@ -168,7 +168,9 @@ run_utests() {
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
         BL_SUFFIX=_std
-        JNPES=$(( JNPES/2 ))
+        INPES=2
+        JNPES=2
+        #JNPES=$(( JNPES/2 ))
         WRITE_GROUP=2
         WRTTASK_PER_GROUP=12
         TASKS=$(( INPES*JNPES*6 + WRITE_GROUP*WRTTASK_PER_GROUP ))
@@ -176,6 +178,7 @@ run_utests() {
         cat <<-EOF > ${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
 					export NEMS_COMPILER=${NEMS_COMPILER}
+					export INPES=${INPES}
 					export JNPES=${JNPES}
 					export WRITE_GROUP=${WRITE_GROUP}
 					export WRTTASK_PER_GROUP=${WRTTASK_PER_GROUP}
@@ -372,10 +375,10 @@ export UNIT_TEST=true
 [[ $# -eq 0 ]] && usage_and_exit 1
 
 # specify compiler
-NEMS_COMPILER=
+NEMS_COMPILER=gnu
 export COMPILER=${NEMS_COMPILER:-intel}
 # detect_machine sets ACCNR and MACHINE_ID
-NEMS_MACHINE=
+NEMS_MACHINE=linux.gnu
 source detect_machine.sh
 # PATHRT - Path to unit tests directory
 readonly PATHRT=$(cd $(dirname $0) && pwd -P)
@@ -476,6 +479,7 @@ elif [[ $MACHINE_ID = linux.* ]]; then
   COMPILER=${NEMS_COMPILER:-intel}
   PARTITION=
   QUEUE=debug
+  COMPILE_QUEUE=debug
   dprefix=/home/tester
   DISKNM=${dprefix}/data
   STMP=${dprefix}/stmp4
@@ -682,7 +686,7 @@ NEW_BASELINE=${STMP}/${USER}/FV3_UT/UNIT_TEST
 if [[ $MACHINE_ID == hera.* || $MACHINE_ID == orion.* ]]; then
   baseline_location=$DISKNM/NEMSfv3gfs/develop-20200611/${COMPILER^^}
 else
-  baseline_location=$DISKNM/NEMSfv3gfs/develop-20200611
+  baseline_location=$DISKNM/NEMSfv3gfs/develop-20200202
 fi
 RTPWD=$baseline_location
 

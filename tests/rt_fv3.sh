@@ -72,12 +72,8 @@ atparse < ${PATHTR}/parm/${NEMS_CONFIGURE:-nems.configure} > nems.configure
 ################################################################################
 
 if [[ $SCHEDULER = 'none' ]]; then
-  #mpiexec -n 18 ./fv3.exe >out 2>err
   ulimit -s unlimited
-  #export OMP_STACKSIZE=512M
-  export KMP_AFFINITY=scatter
-  export OMP_NUM_THREADS=1
-  mpiexec -n 12 ./fv3.exe >out 2> >(tee err >&3)
+  mpiexec -n ${TASKS} ./fv3.exe >out 2> >(tee err >&3)
 else
 if [[ $ROCOTO = 'false' ]]; then
   submit_and_wait job_card
