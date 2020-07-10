@@ -3,10 +3,10 @@ name: Pull Request Tests
 on:
   push:
     branches:
-    - feature/ContInteg
+    - feature/ContInteg-tests
   pull_request:
     branches:
-    - feature/ContInteg
+    - feature/ContInteg-tests
 
 jobs:
   rst:
