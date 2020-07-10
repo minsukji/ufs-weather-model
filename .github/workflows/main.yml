@@ -1,0 +1,109 @@
+name: Pull Request Tests
+
+on:
+  push:
+    branches:
+    - feature/CI
+  pull_request:
+    branches:
+    - feature/CI
+
+jobs:
+  rst:
+    name: restart test
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
+    steps:
+    - name: checkout codes
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: build
+      run: |
+        printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
+        sudo systemctl restart docker
+        sleep 10
+        cd tests && ./ci.sh -b -c rst
+
+    - name: free up disk space
+      run: |
+        docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')
+        docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')
+        docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')
+
+    - name: run utest
+      run: cd tests && ./ci.sh -r
+
+    - name: upload memory usage file
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: memory-statistics-rst
+        path: tests/memory-stat.txt
+
+  bit:
+    name: bit test
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
+    steps:
+    - name: checkout codes
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: build
+      run: |
+        printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
+        sudo systemctl restart docker
+        sleep 10
+        cd tests && ./ci.sh -b -c bit
+
+    - name: free up disk space
+      run: |
+        docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')
+        docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')
+        docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')
+
+    - name: run utest
+      run: cd tests && ./ci.sh -r
+
+    - name: upload memory usage file
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: memory-statistics-bit
+        path: tests/memory-stat.txt
+
+  dbg:
+    name: debug test
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
+    steps:
+    - name: checkout codes
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: build
+      run: |
+        printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
+        sudo systemctl restart docker
+        sleep 10
+        cd tests && ./ci.sh -b -c dbg
+
+    - name: free up disk space
+      run: |
+        docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')
+        docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')
+        docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')
+
+    - name: run utest
+      run: cd tests && ./ci.sh -r
+
+    - name: upload memory usage file
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: memory-statistics-dbg
+        path: tests/memory-stat.txt
