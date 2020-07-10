@@ -62,10 +62,10 @@ if [ $BUILD = "true" ]; then
 
 elif [ $RUN == "true" ]; then
   docker run -d ${IMG_NAME}
-  echo 'cache,rss,shmem' >memory-stat.txt
+  echo 'cache,rss,shmem' >memory_stat
   sleep 3
   containerID=$(docker ps -q --no-trunc)
-  check_memory_usage $containerID >>memory-stat.txt &
+  check_memory_usage $containerID >>memory_stat &
   docker logs -f $containerID
   exit $(docker inspect $containerID --format='{{.State.ExitCode}}')
 

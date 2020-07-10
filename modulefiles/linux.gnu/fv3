@@ -15,8 +15,10 @@ export F77=${F77:-mpif77}
 export F90=${F90:-mpif90}
 export FC=${FC:-mpif90}
 
-export COMPILER=gnu
-export CMAKE_Platform=linux.${COMPILER}
+##
+## set up variables for ../cmake/configure_linux.gnu.cmake
+##
+export CMAKE_Platform=linux.gnu
 export CMAKE_C_COMPILER=${CC}
 export CMAKE_CXX_COMPILER=${CXX}
 export CMAKE_Fortran_COMPILER=${FC}

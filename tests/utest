@@ -19,10 +19,11 @@ usage() {
   echo
   echo "  -c  specify <test-case>"
   echo "      defaults to all test-cases: thr,mpi,dcp,rst,bit,dbg"
-  echo "      comma-separated list of any combination of thr,mpi,dcp,rst,bit,dbg"
+  echo "      comma-separated list of any combination of std,thr,mpi,dcp,rst,bit,dbg"
   echo
   echo "  -b  test reproducibility for bit; compare against baseline"
   echo "  -d  test reproducibility for dbg; compare against baseline"
+  echo "  -s  test reproducibility for std; compare against baseline"
   echo "  -e  use ecFlow workflow manager"
   echo "  -k  keep run directory"
   echo "  -h  display this help and exit"
@@ -134,20 +135,29 @@ run_utests() {
     RT_SUFFIX="_${rc}"
 
     case $rc in
-      std)
+      std_base)
         CREATE_BASELINE=true
         RTPWD=$baseline_location
-        BL_SUFFIX=_std
+        BL_SUFFIX=_std_base
         cat <<-EOF > ${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
 					export UNIT_TEST=true
 					export NEMS_COMPILER=${NEMS_COMPILER}
 					export RESTART_INTERVAL=$(( FHMAX/2 ))
 					EOF
         ;;
+      std)
+        CREATE_BASELINE=false
+        RTPWD=$NEW_BASELINE
+        BL_SUFFIX=_std_base
+        cat <<-EOF > ${RUNDIR_ROOT}/unit_test${RT_SUFFIX}.env
+					export UNIT_TEST=true
+					export NEMS_COMPILER=${NEMS_COMPILER}
+					EOF
+        ;;
       thr)
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
-        BL_SUFFIX=_std
+        BL_SUFFIX=_std_base
         THRD=2
         # INPES is sometimes odd, so use JNPES. Make sure JNPES is divisible by THRD
         JNPES=$(( JNPES/THRD ))
@@ -167,7 +177,7 @@ run_utests() {
       mpi)
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
-        BL_SUFFIX=_std
+        BL_SUFFIX=_std_base
         INPES=2
         JNPES=2
         #JNPES=$(( JNPES/2 ))
@@ -189,7 +199,7 @@ run_utests() {
       dcp)
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
-        BL_SUFFIX=_std
+        BL_SUFFIX=_std_base
         temp=$INPES
         INPES=$JNPES
         JNPES=$temp
@@ -203,7 +213,7 @@ run_utests() {
       rst) # this is not going to work for regional model
         CREATE_BASELINE=false
         RTPWD=$NEW_BASELINE
-        BL_SUFFIX=_std
+        BL_SUFFIX=_std_base
         # Set up date and time of restart files for restart run
         RESTART_FILE_PREFIX="${SYEAR}${SMONTH}${SDAY}.$(printf "%02d" $(( SHOUR + FHMAX/2  )))0000"
         export RESTART_FILE_PREFIX
@@ -332,8 +342,8 @@ run_utests() {
       TEST_NR=${RT_SUFFIX:1}
       COMPILE_NR=$comp_nm
       DEP_RUN=
-      if [[ ${RT_SUFFIX} == _thr || ${RT_SUFFIX} == _mpi || ${RT_SUFFIX} == _dcp || ${RT_SUFFIX} == _rst ]]; then
-        DEP_RUN="${TEST_NAME}_std"
+      if [[ ${RT_SUFFIX} == _std || ${RT_SUFFIX} == _thr || ${RT_SUFFIX} == _mpi || ${RT_SUFFIX} == _dcp || ${RT_SUFFIX} == _rst ]]; then
+        DEP_RUN="${TEST_NAME}_std_base"
       elif [[ ${RT_SUFFIX} == _bit ]]; then
         DEP_RUN="${TEST_NAME}_bit_base"
       elif [[ ${RT_SUFFIX} == _dbg ]]; then
@@ -401,6 +411,7 @@ source rt_utils.sh
 
 # Machine-dependent libraries, modules, variables, etc.
 if [[ $MACHINE_ID = hera.* ]]; then
+
   source $PATHTR/NEMS/src/conf/module-setup.sh.inc
   module use $PATHTR/modulefiles/${MACHINE_ID}
   module load fv3
@@ -481,8 +492,8 @@ elif [[ $MACHINE_ID = linux.* ]]; then
 
   COMPILER=${NEMS_COMPILER:-intel}
   PARTITION=
-  QUEUE=debug
-  COMPILE_QUEUE=debug
+  QUEUE=
+  COMPILE_QUEUE=
   dprefix=/home/tester
   DISKNM=${dprefix}/data
   STMP=${dprefix}/stmp4
@@ -506,7 +517,7 @@ skip_compile=false
 skip_run=false
 
 # parse command line arguments to fill-in/modify the above default variables
-while getopts :n:c:ekhbdxz opt; do
+while getopts :n:c:ekhbdsxz opt; do
   case $opt in
     n)
       TEST_NAME=$OPTARG
@@ -516,7 +527,7 @@ while getopts :n:c:ekhbdxz opt; do
       test_case=$OPTARG
       test_case=$(echo $test_case | sed -e 's/^ *//' -e 's/ *$//' -e 's/,/ /g')
       for i in $test_case; do
-        if [[ $i != thr && $i != mpi && $i != dcp && $i != rst && $i != bit && $i != dbg ]]; then
+        if [[ $i != std && $i != thr && $i != mpi && $i != dcp && $i != rst && $i != bit && $i != dbg ]]; then
           error "invalid test case specified: $i"
         fi
       done
@@ -532,6 +543,9 @@ while getopts :n:c:ekhbdxz opt; do
       ;;
     d)
       dbg_compare=true
+      ;;
+    s)
+      std_compare=true
       ;;
     x)
       skip_compile=true
@@ -555,6 +569,15 @@ fi
 if [[ $skip_compile == true && $skip_run == true ]]; then
   error "$program: cannot skip both compile and run"
 fi
+if [[ $std_compare == true && ! $test_case =~ std ]]; then
+  error "$program: std reproducibility test requires specifying std"
+fi
+if [[ $bit_compare == true && ! $test_case =~ bit ]]; then
+  error "$program: bit reproducibility test requires specifying bit"
+fi
+if [[ $dbg_compare == true && ! $test_case =~ dbg ]]; then
+  error "$program: debug reproducibility test requires specifying dbg"
+fi
 
 # enumerate which case to compile and run
 compile_case=
@@ -564,10 +587,20 @@ for i in $test_case; do
     if [[ ! $compile_case =~ std ]]; then
       compile_case+=" std"
     fi
-    if [[ ! $run_case =~ std ]]; then
-      run_case+=" std"
+    if [[ ! $run_case =~ std_base ]]; then
+      run_case+=" std_base"
     fi
     run_case+=" $i"
+  elif [[ $i == std ]]; then
+    if [[ ! $compile_case =~ std ]]; then
+      compile_case+=" std"
+    fi
+    if [[ ! $run_case =~ std_base ]]; then
+      run_case+=" std_base"
+    fi
+    if [[ $std_compare == true ]]; then
+      run_case+=" std"
+    fi
   elif [[ $i == bit ]]; then
     compile_case+=" bit"
     run_case+=" bit_base"
@@ -584,10 +617,10 @@ for i in $test_case; do
 done
 compile_case=$(echo $compile_case | sed -e 's/^ *//' -e 's/ *$//')
 run_case=$(echo $run_case | sed -e 's/^ *//' -e 's/ *$//')
-# if there exists std in run_case, make sure it is the first
-if [[ $run_case =~ std && ! $run_case =~ ^std ]]; then
-  run_case=$(echo $run_case | sed -e 's/ std//')
-  run_case="std $run_case"
+# if there exists std_base in run_case, make sure it is the first
+if [[ $run_case =~ std_base && ! $run_case =~ ^std_base ]]; then
+  run_case=$(echo $run_case | sed -e 's/ std_base//')
+  run_case="std_base $run_case"
 fi
 
 # log directory
