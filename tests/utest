@@ -510,6 +510,7 @@ CREATE_BASELINE=
 test_case="thr mpi dcp rst bit dbg"
 ECFLOW=false
 ROCOTO=false
+std_compare=false
 bit_compare=false
 dbg_compare=false
 keep_rundir=false
