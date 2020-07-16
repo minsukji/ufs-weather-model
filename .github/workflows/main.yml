@@ -31,7 +31,7 @@ jobs:
     #runs-on: self-hosted
 
     strategy:
-      matrix: ${{ fromJson(needs.job1.outputs.mtx }}
+      matrix: ${{ fromJson(needs.job1.outputs.mtx) }}
 
     steps:
     - name: Checkout codes
