@@ -41,16 +41,16 @@ jobs:
 
     - name: Build
       run: |
-        printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
-        sudo systemctl restart docker
-        sleep 10
+        #printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
+        #sudo systemctl restart docker
+        #sleep 10
         cd tests && ./ci.sh -b -c ${{ matrix.kind }}
 
-    - name: Free up disk space
-      run: |
-        docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')
-        docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')
-        docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')
+    #- name: Free up disk space
+    #  run: |
+    #    docker rmi $(docker image ls | grep -E -m1 '<none>' | awk '{ print $3 }')
+    #    docker rmi $(docker image ls | awk '/fv3-input-data/ { print $3 }')
+    #    docker rmi $(docker image ls | awk '/ci-test-base/ { print $3 }')
 
     - name: Run utest
       run: cd tests && ./ci.sh -r

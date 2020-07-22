@@ -56,7 +56,7 @@ if [ $BUILD = "true" ]; then
   docker build --build-arg test_name=$TEST_NAME \
                --build-arg test_case=$TEST_CASE \
                --no-cache \
-               --squash --compress \
+               --compress \
                -f ../Dockerfile -t ${IMG_NAME} ..
   exit $?
 
