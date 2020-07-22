@@ -27,8 +27,8 @@ jobs:
   job2:
     name: ${{ matrix.kind }} test
     needs: job1
-    runs-on: ubuntu-latest
-    #runs-on: self-hosted
+    #runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     strategy:
       matrix: ${{ fromJson(needs.job1.outputs.mtx) }}
