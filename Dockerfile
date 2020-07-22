@@ -1,10 +1,10 @@
-From minsukjinoaa/fv3-input-data:develop-20200701 AS dataBase
+From minsukjinoaa/fv3-input-data:develop-20200713 AS dataBase
 From minsukjinoaa/ci-test-base:ubuntu20.04
 #From minsukjinoaa/ci-test-base:centos7
 
 ENV HOME=/home/tester
 COPY --chown=tester:tester . $HOME/ufs-weather-model
-COPY --from=dataBase --chown=tester:tester /tmp/FV3_input_data $HOME/data/NEMSfv3gfs/develop-20200701/FV3_input_data
+COPY --from=dataBase --chown=tester:tester /tmp/FV3_input_data $HOME/data/NEMSfv3gfs/develop-20200713/FV3_input_data
 
 USER tester
 ENV USER=tester
