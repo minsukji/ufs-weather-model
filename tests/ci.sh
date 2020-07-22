@@ -53,7 +53,7 @@ fi
 if [ $BUILD = "true" ]; then
   sed -i -e '/affinity.c/d' ../CMakeLists.txt
 
-  docker build --build-arg test_name=$TEST_NAME \
+  sudo docker build --build-arg test_name=$TEST_NAME \
                --build-arg test_case=$TEST_CASE \
                --no-cache \
                --compress \
@@ -61,12 +61,12 @@ if [ $BUILD = "true" ]; then
   exit $?
 
 elif [ $RUN == "true" ]; then
-  docker run -d ${IMG_NAME}
+  sudo docker run -d ${IMG_NAME}
   echo 'cache,rss,shmem' >memory_stat
   sleep 3
-  containerID=$(docker ps -q --no-trunc)
+  containerID=$(sudo docker ps -q --no-trunc)
   check_memory_usage $containerID >>memory_stat &
-  docker logs -f $containerID
-  exit $(docker inspect $containerID --format='{{.State.ExitCode}}')
+  sudo docker logs -f $containerID
+  exit $(sudo docker inspect $containerID --format='{{.State.ExitCode}}')
 
 fi
