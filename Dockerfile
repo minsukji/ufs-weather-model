@@ -9,13 +9,14 @@ COPY --from=dataBase --chown=tester:tester /tmp/FV3_input_data $HOME/data/NEMSfv
 USER tester
 ENV USER=tester
 ARG test_name
-ARG test_case
+ARG build_case
 ENV test_name=$test_name
-ENV test_case=$test_case
+ENV build_case=$build_case
+ENV test_case=
 ENV CI_TEST=true
 ENV NEMS_COMPILER=gnu
 ENV NEMS_MACHINE=linux.gnu
 
 WORKDIR $HOME/ufs-weather-model/tests
-RUN ./utest -n $test_name -c $test_case -z
+RUN ./utest -n $test_name -c $build_case -z
 CMD ./utest -n $test_name -c $test_case -x

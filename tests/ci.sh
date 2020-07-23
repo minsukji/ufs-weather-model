@@ -16,37 +16,35 @@ IMG_NAME=ci-test-weather
 BUILD="false"
 RUN="false"
 TEST_NAME=""
+BUILD_CASE=""
 TEST_CASE=""
 
-# Read in TEST_NAME
-TEST_NAME=$(sed -n 1p ci.test)
-
-while getopts :c:br opt; do
+while getopts :b:r:n: opt; do
   case $opt in
-    c)
-      TEST_CASE=$OPTARG
-      ;;
     b)
       BUILD="true"
+      BUILD_CASE=$OPTARG
       ;;
     r)
       RUN="true"
+      TEST_CASE=$OPTARG
+      ;;
+    n)
+      TEST_NAME=$OPTARG
       ;;
   esac
 done
+
+# Read in TEST_NAME if not passed on
+TEST_NAME=${TEST_NAME:-$(sed -n 1p ci.test)}
 
 if [ $BUILD = "true" ] && [ $RUN = "true" ]; then
   echo "Specify either build (-b) or run (-r) option, not both"
   exit 2
 fi
 
-if [ $BUILD = "true" ] && [ Q$TEST_CASE = Q"" ]; then
-  echo "Build option (-b) should accompany TEST_CASE option (-c)"
-  exit 2
-fi
-
-if [ $RUN = "true" ] && [ Q$TEST_CASE != Q"" ]; then
-  echo "Run option (-r) should not accompany TEST_CASE option (-c)"
+if [ $BUILD = "false" ] && [ $RUN = "false" ]; then
+  echo "Specify either build (-b) or run (-r) option"
   exit 2
 fi
 
@@ -54,14 +52,14 @@ if [ $BUILD = "true" ]; then
   sed -i -e '/affinity.c/d' ../CMakeLists.txt
 
   sudo docker build --build-arg test_name=$TEST_NAME \
-               --build-arg test_case=$TEST_CASE \
-               --no-cache \
-               --squash --compress \
-               -f ../Dockerfile -t ${IMG_NAME} ..
+                    --build-arg build_case=$BUILD_CASE \
+                    --no-cache \
+                    --squash --compress \
+                    -f ../Dockerfile -t ${IMG_NAME} ..
   exit $?
 
 elif [ $RUN == "true" ]; then
-  sudo docker run -d ${IMG_NAME}
+  sudo docker run -e test_case=${TEST_CASE} -d ${IMG_NAME}
   echo 'cache,rss,shmem' >memory_stat
   sleep 3
   containerID=$(sudo docker ps -q --no-trunc)

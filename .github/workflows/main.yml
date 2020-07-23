@@ -9,12 +9,14 @@ on:
     - feature/ContInteg-tests
 
 jobs:
-  job1:
-    name: determine cases to run
+  setup:
+    name: Set up
     runs-on: ubuntu-latest
 
     outputs:
-      mtx: ${{ steps.parse.outputs.m }}
+      testname: ${{ steps.parse.outputs.testname }}
+      bld: ${{ steps.parse.outputs.bld }}
+      test: $${{ steps.parse.outputs.test }}
 
     steps:
     - name: Checkout codes
@@ -22,16 +24,47 @@ jobs:
 
     - name: Parse cases
       id: parse
-      run: echo "::set-output name=m::$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci.test)"
+      run: |
+        var1=$(sed -n 1p ${GITHUB_WORKSPACE}/ci.test)
+        var2=$(sed -n 2p ${GITHUB_WORKSPACE}/ci.test)
+        var3=''
+        [[ $var2 =~ thr || $var2 =~ mpi || $var2 =~ dcp || $var2 =~ rst ]] && var3+='std'
+        [[ $var2 =~ bit ]] && var3+=' bit'
+        [[ $var2 =~ dbg ]] && var3+=' dbg'
+        var3=$(echo $var3 | sed -e 's/^ *//' -e 's/ *$//')
+        var4='{"bld_set":['
+        for i in $var3; do var4+="\"$i\","; done
+        var4=$(echo $var4 | sed -e 's/,$//')
+        var4+=']}'
 
-  job2:
-    name: ${{ matrix.kind }} test
-    needs: job1
-    #runs-on: ubuntu-latest
-    runs-on: self-hosted
+        tv=()
+        var5='{"test_set":['
+        for i in $var2; do
+          var5+="\"$i\","
+          [[ $i =~ thr || $i =~ mpi || $i =~ dcp || $i =~ rst ]] && tv+=( std )
+          [[ $i =~ bit ]] && tv+=( bit )
+          [[ $i =~ dbg ]] && tv+=( dbg )
+        done
+
+        var5=$(echo $var5 | sed -e 's/,$//')
+        var5+='],"include":['
+        j=0
+        for i in $var2; do var5+="{\"test_set\":\"$i\",\"artifact\":\"${tv[$j]}\"},"; j=$((j+1)); done
+        var5=$(echo $var5 | sed -e 's/,$//')
+        var5+=']}'
+
+        echo "::set-output name=testname::$var1"
+        echo "::set-output name=bld::$var4"
+        echo "::set-output name=test::$var5"
+
+  build:
+    name: Build ${{ matrix.bld_set }}
+    needs: setup
+    runs-on: ubuntu-latest
 
     strategy:
-      matrix: ${{ fromJson(needs.job1.outputs.mtx) }}
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup.outputs.bld) }}
 
     steps:
     - name: Checkout codes
@@ -44,7 +77,7 @@ jobs:
         printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
         sudo systemctl restart docker
         sleep 10
-        cd tests && ./ci.sh -b -c ${{ matrix.kind }}
+        cd tests && ./ci.sh -n ${{ needs.setup.outputs.testname }} -b ${{ matrix.bld_set }}
 
     - name: Free up disk space
       run: |
@@ -52,12 +85,45 @@ jobs:
         sudo docker rmi $(sudo docker image ls | awk '/fv3-input-data/ { print $3 }')
         sudo docker rmi $(sudo docker image ls | awk '/ci-test-base/ { print $3 }')
 
+    - name: Prepare artifacts
+      run: |
+        cd tests
+        sudo docker save ci-test-weather | gzip >ci-test-weather.tar.gz
+        tar cvjf artifact.tar.bz2 ci-test-weather.tar.gz ci.sh
+
+    - name: Upload artifacts
+      uses: actions/upload-artifacts@v2
+      with:
+        name: artifact.tar.bz2
+        path: artifact.tar.bz2
+
+  utest:
+    name: Unit test (${{ needs.setup.outputs.testname }}, ${{ matrix.test_set }})
+    needs: [setup,build]
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup.outputs.test) }}
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: artifact.tar.bz2
+
+    - name: Prepare artifacts
+      run: tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
+
     - name: Run utest
-      run: cd tests && ./ci.sh -r
+      run: cd tests && ./ci.sh -n ${{ needs.setup.outputs.testname }} -r ${{ matrix.test_set }}
 
     - name: Upload memory usage file
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
-        name: memory_stat_${{ matrix.kind }}
-        path: tests/memory_stat
+        name: memory_stat_${{ matrix.test_set }}
+        path: memory_stat
+
+    #- name: Clean up
