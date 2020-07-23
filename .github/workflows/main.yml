@@ -57,6 +57,10 @@ jobs:
         echo "::set-output name=bld::$var4"
         echo "::set-output name=test::$var5"
 
+        echo $var1
+        echo $var4
+        echo $var5
+
   build:
     name: Build ${{ matrix.bld_set }}
     needs: setup
@@ -95,7 +99,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: artifact.tar.bz2-${{ matrix.bld_set }}
-        path: artifact.tar.bz2
+        path: tests/artifact.tar.bz2
 
   utest:
     name: Unit test (${{ needs.setup.outputs.testname }}, ${{ matrix.test_set }})
