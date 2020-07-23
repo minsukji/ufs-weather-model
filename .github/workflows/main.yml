@@ -94,7 +94,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: artifact.tar.bz2
+        name: artifact.tar.bz2-${{ matrix.bld_set }}
         path: artifact.tar.bz2
 
   utest:
@@ -111,13 +111,14 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: artifact.tar.bz2
+        name: artifact.tar.bz2-${{ matrix.artifact }}
+        path: artifact.tar.bz2
 
     - name: Prepare artifacts
       run: tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
 
     - name: Run utest
-      run: cd tests && ./ci.sh -n ${{ needs.setup.outputs.testname }} -r ${{ matrix.test_set }}
+      run: ./ci.sh -n ${{ needs.setup.outputs.testname }} -r ${{ matrix.test_set }}
 
     - name: Upload memory usage file
       if: ${{ always() }}
