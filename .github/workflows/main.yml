@@ -115,7 +115,9 @@ jobs:
         path: artifact.tar.bz2
 
     - name: Prepare artifacts
-      run: tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
+      run: |
+        tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
+        sudo docker load --input ci-test-weather.tar.gz && rm -f ci-test-weather.tar.gz
 
     - name: Run utest
       run: ./ci.sh -n ${{ needs.setup.outputs.testname }} -r ${{ matrix.test_set }}
