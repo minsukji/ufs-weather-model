@@ -25,8 +25,8 @@ jobs:
     - name: Parse cases
       id: parse
       run: |
-        var1=$(sed -n 1p ${GITHUB_WORKSPACE}/ci.test)
-        var2=$(sed -n 2p ${GITHUB_WORKSPACE}/ci.test)
+        var1=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci.test)
+        var2=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci.test)
         var3=''
         [[ $var2 =~ thr || $var2 =~ mpi || $var2 =~ dcp || $var2 =~ rst ]] && var3+='std'
         [[ $var2 =~ bit ]] && var3+=' bit'
