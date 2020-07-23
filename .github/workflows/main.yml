@@ -92,7 +92,7 @@ jobs:
         tar cvjf artifact.tar.bz2 ci-test-weather.tar.gz ci.sh
 
     - name: Upload artifacts
-      uses: actions/upload-artifacts@v2
+      uses: actions/upload-artifact@v2
       with:
         name: artifact.tar.bz2
         path: artifact.tar.bz2
