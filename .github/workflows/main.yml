@@ -121,7 +121,7 @@ jobs:
       run: |
         pwd
         ls -l
-        tar xvjf ${{ matrix.artifact }}.artifact.tar.bz2 && rm -f ${{ matrix.artifact }}.artifact.tar.bz2
+        tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
         sudo docker load --input ci-test-weather.tar.gz && rm -f ci-test-weather.tar.gz
 
     - name: Run utest
