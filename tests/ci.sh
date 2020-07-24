@@ -59,7 +59,10 @@ if [ $BUILD = "true" ]; then
   exit $?
 
 elif [ $RUN == "true" ]; then
-  sudo docker run -e test_case=${TEST_CASE} -d ${IMG_NAME}
+  sudo docker run -d --rm -v DataVolume:/tmp minsukjinoaa/fv3-input-data:develop-20200713
+  sudo docker rmi minsukjinoaa/fv3-input-data:develop-20200713
+
+  sudo docker run -e test_case=${TEST_CASE} -v DataVolume:/home/tester/data/NEMSfv3gfs/develop-20200713 -d ${IMG_NAME}
   echo 'cache,rss,shmem' >memory_stat
   sleep 3
   containerID=$(sudo docker ps -q --no-trunc)
