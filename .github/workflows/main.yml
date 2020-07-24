@@ -97,8 +97,8 @@ jobs:
     - name: Prepare artifacts
       run: |
         cd tests
-        sudo docker save ${ needs.setup.outputs.img } | gzip >${ needs.setup.outputs.img }.tar.gz
-        tar cvjf artifact.tar.bz2 ${ needs.setup.outputs.img }.tar.gz ci.sh ci.test
+        sudo docker save ${{ needs.setup.outputs.img }} | gzip >${{ needs.setup.outputs.img }}.tar.gz
+        tar cvjf artifact.tar.bz2 ${{ needs.setup.outputs.img }}.tar.gz ci.sh ci.test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -125,7 +125,7 @@ jobs:
     - name: Prepare artifacts
       run: |
         tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
-        sudo docker load --input ${ needs.setup.outputs.img }.tar.gz && rm -f ${ needs.setup.outputs.img }.tar.gz
+        sudo docker load --input ${{ needs.setup.outputs.img }}.tar.gz && rm -f ${{ needs.setup.outputs.img }}.tar.gz
 
     - name: Run utest
       run: ./ci.sh -n ${{ needs.setup.outputs.tn }} -r ${{ matrix.test_set }}
