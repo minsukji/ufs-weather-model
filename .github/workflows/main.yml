@@ -17,6 +17,7 @@ jobs:
       tn: ${{ steps.parse.outputs.tn }}
       bld: ${{ steps.parse.outputs.bld }}
       test: ${{ steps.parse.outputs.test }}
+      img: ${{ steps.parse.outputs.img }}
 
     steps:
     - name: Checkout codes
@@ -27,6 +28,7 @@ jobs:
       run: |
         name_=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci.test)
         case_=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci.test)
+        img_=$(sed -n 3p ${GITHUB_WORKSPACE}/tests/ci.test)
 
         imd1_=''
         [[ $case_ =~ thr || $case_ =~ mpi || $case_ =~ dcp || $case_ =~ rst ]] && imd1_+='std'
@@ -58,13 +60,15 @@ jobs:
         echo "::set-output name=tn::$name_"
         echo "::set-output name=bld::$bld_"
         echo "::set-output name=test::$test_"
+        echo "::set-output name=img::$img_"
 
-        echo $name_
-        echo $bld_
-        echo $test_
+        echo "test name : $name_"
+        echo "build set : $bld_"
+        echo "test set  : $test_"
+        echo "image name: $img_"
 
   build:
-    name: Build ${{ matrix.bld_set }}
+    name: Build (${{ matrix.bld_set }})
     needs: setup
     runs-on: ubuntu-latest
 
@@ -93,8 +97,8 @@ jobs:
     - name: Prepare artifacts
       run: |
         cd tests
-        sudo docker save ci-test-weather | gzip >ci-test-weather.tar.gz
-        tar cvjf artifact.tar.bz2 ci-test-weather.tar.gz ci.sh
+        sudo docker save ${ needs.setup.outputs.img } | gzip >${ needs.setup.outputs.img }.tar.gz
+        tar cvjf artifact.tar.bz2 ${ needs.setup.outputs.img }.tar.gz ci.sh ci.test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -105,8 +109,8 @@ jobs:
   utest:
     name: Unit test (${{ needs.setup.outputs.tn }}, ${{ matrix.test_set }})
     needs: [setup,build]
-    runs-on: ubuntu-latest
-    #runs-on: self-hosted
+    #runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     strategy:
       fail-fast: false
@@ -120,10 +124,8 @@ jobs:
 
     - name: Prepare artifacts
       run: |
-        pwd
-        ls -l
         tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
-        sudo docker load --input ci-test-weather.tar.gz && rm -f ci-test-weather.tar.gz
+        sudo docker load --input ${ needs.setup.outputs.img }.tar.gz && rm -f ${ needs.setup.outputs.img }.tar.gz
 
     - name: Run utest
       run: ./ci.sh -n ${{ needs.setup.outputs.tn }} -r ${{ matrix.test_set }}
