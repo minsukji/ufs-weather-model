@@ -98,7 +98,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: artifact.tar.bz2-${{ matrix.bld_set }}
+        name: ${{ matrix.bld_set }}.artifact.tar.bz2
         path: tests/artifact.tar.bz2
 
   utest:
@@ -115,12 +115,13 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: artifact.tar.bz2-${{ matrix.artifact }}
-        path: artifact.tar.bz2
+        name: ${{ matrix.artifact }}.artifact.tar.bz2
 
     - name: Prepare artifacts
       run: |
-        tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
+        pwd
+        ls -l
+        tar xvjf ${{ matrix.artifact }}.artifact.tar.bz2 && rm -f ${{ matrix.artifact }}.artifact.tar.bz2
         sudo docker load --input ci-test-weather.tar.gz && rm -f ci-test-weather.tar.gz
 
     - name: Run utest
