@@ -60,7 +60,7 @@ if [ $BUILD = "true" ]; then
 
 elif [ $RUN == "true" ]; then
   sudo docker run -d --rm -v DataVolume:/tmp minsukjinoaa/fv3-input-data:develop-20200713
-  sudo docker rmi minsukjinoaa/fv3-input-data:develop-20200713
+  #sudo docker rmi minsukjinoaa/fv3-input-data:develop-20200713
 
   sudo docker run -e test_case=${TEST_CASE} -v DataVolume:/home/tester/data/NEMSfv3gfs/develop-20200713 -d ${IMG_NAME}
   echo 'cache,rss,shmem' >memory_stat
