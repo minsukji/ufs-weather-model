@@ -25,41 +25,43 @@ jobs:
     - name: Parse cases
       id: parse
       run: |
-        var1=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci.test)
-        var2=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci.test)
-        var3=''
-        [[ $var2 =~ thr || $var2 =~ mpi || $var2 =~ dcp || $var2 =~ rst ]] && var3+='std'
-        [[ $var2 =~ bit ]] && var3+=' bit'
-        [[ $var2 =~ dbg ]] && var3+=' dbg'
-        var3=$(echo $var3 | sed -e 's/^ *//' -e 's/ *$//')
-        var4='{"bld_set":['
-        for i in $var3; do var4+="\"$i\","; done
-        var4=$(echo $var4 | sed -e 's/,$//')
-        var4+=']}'
+        name_=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci.test)
+        case_=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci.test)
 
-        tv=()
-        var5='{"test_set":['
-        for i in $var2; do
-          var5+="\"$i\","
-          [[ $i =~ thr || $i =~ mpi || $i =~ dcp || $i =~ rst ]] && tv+=( std )
-          [[ $i =~ bit ]] && tv+=( bit )
-          [[ $i =~ dbg ]] && tv+=( dbg )
+        imd1_=''
+        [[ $case_ =~ thr || $case_ =~ mpi || $case_ =~ dcp || $case_ =~ rst ]] && imd1_+='std'
+        [[ $case_ =~ bit ]] && imd1_+=' bit'
+        [[ $case_ =~ dbg ]] && imd1_+=' dbg'
+        imd1_=$(echo $imd1_ | sed -e 's/^ *//' -e 's/ *$//')
+
+        bld_='{"bld_set":['
+        for i in $imd1_; do bld_+="\"$i\","; done
+        bld_=$(echo $bld_ | sed -e 's/,$//')
+        bld_+=']}'
+
+        imd2_=()
+        test_='{"test_set":['
+        for i in $case_; do
+          test_+="\"$i\","
+          [[ $i =~ thr || $i =~ mpi || $i =~ dcp || $i =~ rst ]] && imd2_+=( std )
+          [[ $i =~ bit ]] && imd2_+=( bit )
+          [[ $i =~ dbg ]] && imd2_+=( dbg )
         done
 
-        var5=$(echo $var5 | sed -e 's/,$//')
-        var5+='],"include":['
+        test_=$(echo $test_ | sed -e 's/,$//')
+        test_+='],"include":['
         j=0
-        for i in $var2; do var5+="{\"test_set\":\"$i\",\"artifact\":\"${tv[$j]}\"},"; j=$((j+1)); done
-        var5=$(echo $var5 | sed -e 's/,$//')
-        var5+=']}'
+        for i in $case_; do test_+="{\"test_set\":\"$i\",\"artifact\":\"${imd2_[$j]}\"},"; j=$((j+1)); done
+        test_=$(echo $test_ | sed -e 's/,$//')
+        test_+=']}'
 
-        echo "::set-output name=tn::$var1"
-        echo "::set-output name=bld::$var4"
-        echo "::set-output name=test::$var5"
+        echo "::set-output name=tn::$name_"
+        echo "::set-output name=bld::$bld_"
+        echo "::set-output name=test::$test_"
 
-        echo $var1
-        echo $var4
-        echo $var5
+        echo $name_
+        echo $bld_
+        echo $test_
 
   build:
     name: Build ${{ matrix.bld_set }}
