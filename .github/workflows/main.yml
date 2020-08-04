@@ -109,8 +109,8 @@ jobs:
   utest:
     name: Unit test (${{ needs.setup.outputs.tn }}, ${{ matrix.test_set }})
     needs: [setup,build]
-    #runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
 
     strategy:
       fail-fast: false
