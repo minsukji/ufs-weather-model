@@ -50,13 +50,13 @@ fi
 
 if [ $BUILD = "true" ]; then
 
-  sed -i -e '/affinity.c/d' ../CMakeLists.txt
+  sed -i -e '/affinity.c/d' ../../CMakeLists.txt
 
   sudo docker build --build-arg test_name=$TEST_NAME \
                     --build-arg build_case=$BUILD_CASE \
                     --no-cache \
                     --squash --compress \
-                    -f ../Dockerfile -t ${IMG_NAME} ..
+                    -f Dockerfile -t ${IMG_NAME} ../..
   exit $?
 
 elif [ $RUN == "true" ]; then

@@ -26,9 +26,9 @@ jobs:
     - name: Parse cases
       id: parse
       run: |
-        name_=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci.test)
-        case_=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci.test)
-        img_=$(sed -n 3p ${GITHUB_WORKSPACE}/tests/ci.test)
+        name_=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci/ci.test)
+        case_=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci/ci.test)
+        img_=$(sed -n 3p ${GITHUB_WORKSPACE}/tests/ci/ci.test)
 
         imd1_=''
         [[ $case_ =~ thr || $case_ =~ mpi || $case_ =~ dcp || $case_ =~ rst ]] && imd1_+='std'
@@ -87,7 +87,7 @@ jobs:
         printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
         sudo systemctl restart docker
         sleep 10
-        cd tests && ./ci.sh -n ${{ needs.setup.outputs.tn }} -b ${{ matrix.bld_set }}
+        cd tests/ci && ./ci.sh -n ${{ needs.setup.outputs.tn }} -b ${{ matrix.bld_set }}
 
     - name: Free up disk space
       run: |
@@ -96,7 +96,7 @@ jobs:
 
     - name: Prepare artifacts
       run: |
-        cd tests
+        cd tests/ci
         sudo docker save ${{ needs.setup.outputs.img }} | gzip >${{ needs.setup.outputs.img }}.tar.gz
         tar cvjf artifact.tar.bz2 ${{ needs.setup.outputs.img }}.tar.gz ci.sh ci.test
 
@@ -104,7 +104,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.bld_set }}.artifact.tar.bz2
-        path: tests/artifact.tar.bz2
+        path: tests/ci/artifact.tar.bz2
 
   utest:
     name: Unit test (${{ needs.setup.outputs.tn }}, ${{ matrix.test_set }})
