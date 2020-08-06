@@ -12,6 +12,18 @@ check_memory_usage() {
   set -x
 }
 
+usage_and_exit() {
+  echo
+  echo "Note: main purpose of this script is to interface between CI automation and utest script"
+  echo "and therefore, direct invocation via CLI may result in unexpected behavior"
+  echo
+  echo "Usage: $0 -b <build-case> | -r <test-case>"
+  echo "  -b specify cases to build: comma-separated list of any combination of std,big,dbg"
+  echo "  -r specify tests to run: comma-separated list of any combination of std,thr,mpi,dcp,rst,bit,dbg"
+  echo
+  exit 2
+}
+
 IMG_NAME=$(sed -n 3p ci.test)
 BUILD="false"
 RUN="false"
@@ -37,15 +49,16 @@ done
 
 # Read in TEST_NAME if not passed on
 TEST_NAME=${TEST_NAME:-$(sed -n 1p ci.test)}
+echo "test name is ${TEST_NAME}"
 
 if [ $BUILD = "true" ] && [ $RUN = "true" ]; then
   echo "Specify either build (-b) or run (-r) option, not both"
-  exit 2
+  usage_and_exit
 fi
 
 if [ $BUILD = "false" ] && [ $RUN = "false" ]; then
   echo "Specify either build (-b) or run (-r) option"
-  exit 2
+  usage_and_exit
 fi
 
 if [ $BUILD = "true" ]; then
