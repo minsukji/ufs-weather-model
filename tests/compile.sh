@@ -43,7 +43,6 @@ if [[ $BUILD_TARGET == cheyenne.* || $BUILD_TARGET == stampede.* ]] ; then
     MAKE_THREADS=${MAKE_THREADS:-3}
 fi
 
-echo "FROM COMPILE.SH=============== S2S is $S2S"
 if [[ $S2S == true ]]; then
   MAKE_THREADS=${MAKE_THREADS:-1}
 else
