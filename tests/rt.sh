@@ -9,8 +9,9 @@ die() { echo "$@" >&2; exit 1; }
 usage() {
   set +x
   echo
-  echo "Usage: $0 -c | -e | -f | -h | -k | -l <file> | -m | -n <name> | -r | -s"
+  echo "Usage: $0 -a | -c | -e | -f | -h | -k | -l <file> | -m | -n <name> | -r | -s" 
   echo
+  echo "  -a  run regression tests for S2S model"
   echo "  -c  create new baseline results"
   echo "  -e  use ecFlow workflow manager"
   echo "  -f  run full suite of regression tests"
@@ -54,6 +55,38 @@ rt_single() {
     echo "$SINGLE_NAME does not exist or cannot be run on $MACHINE_ID"
     exit 1
   fi
+}
+
+rt_35d() {
+  local sy=$(echo ${DATE_35D} | cut -c 1-4)
+  local sm=$(echo ${DATE_35D} | cut -c 5-6)
+  local new_test_name="tests/${TEST_NAME}_${DATE_35D}"
+  rm -f tests/$new_test_name
+  cp tests/$TEST_NAME $new_test_name
+
+  if [[ $TEST_NAME =~ cold$ ]]; then
+    sed -i -e "s/\(export LIST_FILES\)/\1=\"ufs.s2s.cold.cpl.r.${sy}-${sm}-01-03600.nc\"/" $new_test_name
+    sed -i -e "s/\(export SYEAR\)/\1=\"$sy\"/" $new_test_name
+    sed -i -e "s/\(export SMONTH\)/\1=\"$sm\"/" $new_test_name
+    if [[ $TEST_NAME =~ ww3 ]]; then
+      sed -i -e "s/\(export CNTL_DIR\)/\1='RT-Baselines_cold_bmwav_cmeps_${DATE_35D}'/" $new_test_name
+      sed -i -e "s/\(export CNTLMED_DIR\)/\1='MEDIATOR_bmwav_cmeps_${DATE_35D}'/" $new_test_name
+    else
+      sed -i -e "s/\(export CNTL_DIR\)/\1='RT-Baselines_cold_bm_cmeps_${DATE_35D}'/" $new_test_name
+      sed -i -e "s/\(export CNTLMED_DIR\)/\1='MEDIATOR_bm_cmeps_${DATE_35D}'/" $new_test_name
+    fi
+  elif [[ $TEST_NAME =~ 35d$ ]]; then
+    sed -i -e "s/\(export SYEAR\)/\1=\"$sy\"/" $new_test_name
+    sed -i -e "s/\(export SMONTH\)/\1=\"$sm\"/" $new_test_name
+    DEP_RUN=${DEP_RUN}_${DATE_35D}
+    if [[ $TEST_NAME =~ ww3 ]]; then
+      sed -i -e "s/\(export MED_restart_data\)/\1='MEDIATOR_bmwav_cmeps_${DATE_35D}'/" $new_test_name
+    else
+      sed -i -e "s/\(export MED_restart_data\)/\1='MEDIATOR_bm_cmeps_${DATE_35D}'/" $new_test_name
+    fi
+  fi
+
+  TEST_NAME=${new_test_name#tests/}
 }
 
 rt_trap() {
@@ -157,7 +190,7 @@ elif [[ $MACHINE_ID = wcoss_dell_p3 ]]; then
   ECF_PORT=$(grep $USER /usrx/local/sys/ecflow/assigned_ports.txt | awk '{print $2}')
 
   DISKNM=/gpfs/dell2/emc/modeling/noscrub/emc.nemspara/RT
-  QUEUE=debug
+  QUEUE=dev
   COMPILE_QUEUE=dev_transfer
   PARTITION=
   ACCNR=GFS-DEV
@@ -249,7 +282,7 @@ elif [[ $MACHINE_ID = orion.* ]]; then
 #  ACCNR= # detected in detect_machine.sh
   PARTITION=orion
   dprefix=/work/noaa/stmp/${USER}
-  DISKNM=/work/noaa/fv3-cam/djovic/RT
+  DISKNM=/work/noaa/nems/emc.nemspara/RT
   STMP=$dprefix/stmp
   PTMP=$dprefix/stmp
 
@@ -337,32 +370,40 @@ fi
 
 mkdir -p ${STMP}/${USER}
 
-# Different own baseline directories for different compilers on Theia/Cheyenne
-NEW_BASELINE=${STMP}/${USER}/FV3_RT/REGRESSION_TEST
+# Different own baseline directories for different compilers
+NEW_BASELINE=${STMP}/${USER}/UFS/REGRESSION_TEST
 if [[ $MACHINE_ID = hera.* ]] || [[ $MACHINE_ID = orion.* ]] || [[ $MACHINE_ID = cheyenne.* ]]; then
     NEW_BASELINE=${NEW_BASELINE}_${COMPILER^^}
 fi
 
 # Overwrite default RUNDIR_ROOT if environment variable RUNDIR_ROOT is set
-RUNDIR_ROOT=${RUNDIR_ROOT:-${PTMP}/${USER}/FV3_RT}/rt_$$
+RUNDIR_ROOT=${RUNDIR_ROOT:-${PTMP}/${USER}/UFS}/rt_$$
 mkdir -p ${RUNDIR_ROOT}
 
 CREATE_BASELINE=false
+SET_ID='standard'
 ROCOTO=false
 ECFLOW=false
 KEEP_RUNDIR=false
 SINGLE_NAME=''
+TEST_35D=false
+export S2S=false
+wf_max_builds=10
 
-TESTS_FILE='rt.conf'
+TESTS_FILE='rt_weather.conf'
 
 if [[ $MACHINE_ID = orion.* ]]; then
   TESTS_FILE='rt_orion.conf'
 fi
 
-
-SET_ID='standard'
-while getopts ":cfsl:mn:kreh" opt; do
+while getopts ":acfsl:mn:kreh" opt; do
   case $opt in
+    a)
+      S2S=true
+      TESTS_FILE='rt_s2s.conf'
+      SET_ID=' '
+      wf_max_builds=1
+      ;;
     c)
       CREATE_BASELINE=true
       SET_ID=' '
@@ -416,10 +457,22 @@ if [[ $SINGLE_NAME != '' ]]; then
   rt_single
 fi
 
+if [[ $TESTS_FILE =~ '35d' ]]; then
+  TEST_35D=true
+fi
+
 if [[ $MACHINE_ID = hera.* ]] || [[ $MACHINE_ID = orion.* ]] || [[ $MACHINE_ID = cheyenne.* ]]; then
-  RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200812/${COMPILER^^}}
+  if [ $S2S == true ]; then
+    RTPWD=${RTPWD:-$DISKNM/FV3-MOM6-CICE5/develop-20200812}
+  else
+    RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200812/${COMPILER^^}}
+  fi
 else
-  RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200812}
+  if [ $S2S == true ]; then
+    RTPWD=${RTPWD:-$DISKNM/FV3-MOM6-CICE5/develop-20200812}
+  else
+    RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200812}
+  fi
 fi
 
 shift $((OPTIND-1))
@@ -436,26 +489,33 @@ if [[ $CREATE_BASELINE == true ]]; then
 
   rsync -a "${RTPWD}"/FV3_* "${NEW_BASELINE}"/
   rsync -a "${RTPWD}"/WW3_* "${NEW_BASELINE}"/
+  if [ $S2S == true ]; then
+    rsync -a "${RTPWD}"/MOM6_* "${NEW_BASELINE}"/
+    rsync -a "${RTPWD}"/CICE_* "${NEW_BASELINE}"/
+    rsync -a "${RTPWD}"/CPL_* "${NEW_BASELINE}"/
+    rsync -a "${RTPWD}"/BM_* "${NEW_BASELINE}"/
+  else
+    # FIXME: move these namelist files to parm directory
+    rsync -a "${RTPWD}"/fv3_regional_control/input.nml "${NEW_BASELINE}"/fv3_regional_control/
+    rsync -a "${RTPWD}"/fv3_regional_quilt/input.nml   "${NEW_BASELINE}"/fv3_regional_quilt/
+    rsync -a "${RTPWD}"/fv3_regional_c768/input.nml    "${NEW_BASELINE}"/fv3_regional_c768/
+    rsync -a "${RTPWD}"/fv3_regional_restart/input.nml "${NEW_BASELINE}"/fv3_regional_restart/
 
-  # FIXME: move these namelist files to parm directory
-  rsync -a "${RTPWD}"/fv3_regional_control/input.nml "${NEW_BASELINE}"/fv3_regional_control/
-  rsync -a "${RTPWD}"/fv3_regional_quilt/input.nml   "${NEW_BASELINE}"/fv3_regional_quilt/
-  rsync -a "${RTPWD}"/fv3_regional_c768/input.nml    "${NEW_BASELINE}"/fv3_regional_c768/
-  rsync -a "${RTPWD}"/fv3_regional_restart/input.nml "${NEW_BASELINE}"/fv3_regional_restart/
+    rsync -a "${RTPWD}"/fv3_regional_control/model_configure "${NEW_BASELINE}"/fv3_regional_control/
+    rsync -a "${RTPWD}"/fv3_regional_quilt/model_configure   "${NEW_BASELINE}"/fv3_regional_quilt/
+    rsync -a "${RTPWD}"/fv3_regional_c768/model_configure    "${NEW_BASELINE}"/fv3_regional_c768/
+    rsync -a "${RTPWD}"/fv3_regional_restart/model_configure "${NEW_BASELINE}"/fv3_regional_restart/
 
-  rsync -a "${RTPWD}"/fv3_regional_control/model_configure "${NEW_BASELINE}"/fv3_regional_control/
-  rsync -a "${RTPWD}"/fv3_regional_quilt/model_configure   "${NEW_BASELINE}"/fv3_regional_quilt/
-  rsync -a "${RTPWD}"/fv3_regional_c768/model_configure    "${NEW_BASELINE}"/fv3_regional_c768/
-  rsync -a "${RTPWD}"/fv3_regional_restart/model_configure "${NEW_BASELINE}"/fv3_regional_restart/
-
-  rsync -a "${RTPWD}"/fv3_regional_control/INPUT     "${NEW_BASELINE}"/fv3_regional_control/
-  rsync -a "${RTPWD}"/fv3_regional_control/RESTART   "${NEW_BASELINE}"/fv3_regional_control/
-  rsync -a "${RTPWD}"/fv3_regional_quilt/INPUT       "${NEW_BASELINE}"/fv3_regional_quilt/
-  rsync -a "${RTPWD}"/fv3_regional_c768/INPUT        "${NEW_BASELINE}"/fv3_regional_c768/
-  rsync -a "${RTPWD}"/fv3_regional_restart/INPUT     "${NEW_BASELINE}"/fv3_regional_restart/
-  rsync -a "${RTPWD}"/fv3_stretched/INPUT            "${NEW_BASELINE}"/fv3_stretched/
-  rsync -a "${RTPWD}"/fv3_stretched_nest/INPUT       "${NEW_BASELINE}"/fv3_stretched_nest/
-  rsync -a "${RTPWD}"/fv3_stretched_nest_quilt/INPUT "${NEW_BASELINE}"/fv3_stretched_nest_quilt/
+    rsync -a "${RTPWD}"/fv3_regional_control/INPUT     "${NEW_BASELINE}"/fv3_regional_control/
+    rsync -a "${RTPWD}"/fv3_regional_control/RESTART   "${NEW_BASELINE}"/fv3_regional_control/
+    rsync -a "${RTPWD}"/fv3_regional_quilt/INPUT       "${NEW_BASELINE}"/fv3_regional_quilt/
+    rsync -a "${RTPWD}"/fv3_regional_c768/INPUT        "${NEW_BASELINE}"/fv3_regional_c768/
+    rsync -a "${RTPWD}"/fv3_regional_restart/INPUT     "${NEW_BASELINE}"/fv3_regional_restart/
+    rsync -a "${RTPWD}"/fv3_stretched/INPUT            "${NEW_BASELINE}"/fv3_stretched/
+    rsync -a "${RTPWD}"/fv3_stretched_nest/INPUT       "${NEW_BASELINE}"/fv3_stretched_nest/
+    rsync -a "${RTPWD}"/fv3_stretched_nest_quilt/INPUT "${NEW_BASELINE}"/fv3_stretched_nest_quilt/
+  fi
+  RTPWD=${NEW_BASELINE}
 fi
 
 COMPILE_LOG=${PATHRT}/Compile_$MACHINE_ID.log
@@ -545,7 +605,7 @@ suite ${ECFLOW_SUITE}
     edit ECF_TRIES 1
     label src_dir '${PATHTR}'
     label run_dir '${RUNDIR_ROOT}'
-    limit max_builds 10
+    limit max_builds ${wf_max_builds}
     limit max_jobs 30
 EOF
 
@@ -597,9 +657,11 @@ while read -r line; do
       [[ $MACHINES != ' ' && $MACHINES != *${MACHINE_ID}* ]] && continue
       [[ $CREATE_BASELINE == true && $CB != *fv3* ]] && continue
 
+      COMPILE_NR_DEP=${COMPILE_NR}
       (( COMPILE_NR += 1 ))
 
       cat << EOF > ${RUNDIR_ROOT}/compile_${COMPILE_NR}.env
+      export S2S=${S2S}
       export MACHINE_ID=${MACHINE_ID}
       export PATHRT=${PATHRT}
       export PATHTR=${PATHTR}
@@ -625,14 +687,15 @@ EOF
 
       # Set RT_SUFFIX (regression test run directories and log files) and BL_SUFFIX
       # (regression test baseline directories) for REPRO (IPD, CCPP) or PROD (CCPP) runs
-      if [[ ${NEMS_VER^^} =~ "REPRO=Y" ]]; then
-        RT_SUFFIX="_repro"
-        BL_SUFFIX="_repro"
-      elif [[ ${NEMS_VER^^} =~ "CCPP=Y" ]]; then
-        RT_SUFFIX="_prod"
-        BL_SUFFIX="_ccpp"
+      if [ $S2S != true ]; then
+        if [[ ${NEMS_VER^^} =~ "REPRO=Y" ]]; then
+          RT_SUFFIX="_repro"
+          BL_SUFFIX="_repro"
+        elif [[ ${NEMS_VER^^} =~ "CCPP=Y" ]]; then
+          RT_SUFFIX="_prod"
+          BL_SUFFIX="_ccpp"
+        fi
       fi
-
       if [[ ${NEMS_VER^^} =~ "WW3=Y" ]]; then
          COMPILE_PREV_WW3_NR=${COMPILE_NR}
       fi
@@ -685,10 +748,15 @@ EOF
     MACHINES=$( echo $line | cut -d'|' -f4)
     CB=$(       echo $line | cut -d'|' -f5)
     DEP_RUN=$(  echo $line | cut -d'|' -f6 | sed -e 's/^ *//' -e 's/ *$//')
+    DATE_35D=$( echo $line | cut -d'|' -f7 | sed -e 's/^ *//' -e 's/ *$//')
+
     [[ -e "tests/$TEST_NAME" ]] || die "run test file tests/$TEST_NAME does not exist"
     [[ $SET_ID != ' ' && $SET != *${SET_ID}* ]] && continue
     [[ $MACHINES != ' ' && $MACHINES != *${MACHINE_ID}* ]] && continue
     [[ $CREATE_BASELINE == true && $CB != *fv3* ]] && continue
+
+    # 35 day tests
+    [[ $TEST_35D == true ]] && rt_35d
 
     # skip all *_appbuild runs if rocoto or ecFlow is used. FIXME
     if [[ ${ROCOTO} == true && ${ECFLOW} == true ]]; then
@@ -720,6 +788,7 @@ EOF
       fi
 
       cat << EOF > ${RUNDIR_ROOT}/run_test_${TEST_NR}.env
+      export S2S=${S2S}
       export MACHINE_ID=${MACHINE_ID}
       export RTPWD=${RTPWD}
       export PATHRT=${PATHRT}
@@ -736,6 +805,7 @@ EOF
       export ECFLOW=${ECFLOW}
       export REGRESSIONTEST_LOG=${REGRESSIONTEST_LOG}
       export LOG_DIR=${LOG_DIR}
+      export DEP_RUN=${DEP_RUN}
 EOF
 
       if [[ $ROCOTO == true ]]; then
@@ -792,9 +862,10 @@ else
    echo ; echo REGRESSION TEST WAS SUCCESSFUL
   (echo ; echo REGRESSION TEST WAS SUCCESSFUL) >> ${REGRESSIONTEST_LOG}
 
-  rm -f fv3_*.x fv3_*.exe modules.fv3_*
+  rm -f fcst_*.x fcst_*.exe modules.fcst_*
   [[ ${KEEP_RUNDIR} == false ]] && rm -rf ${RUNDIR_ROOT}
   [[ ${ROCOTO} == true ]] && rm -f ${ROCOTO_XML} ${ROCOTO_DB} *_lock.db
+  [[ ${TEST_35D} == true ]] && rm -f tests/cpld_*cmeps*_20*
 fi
 
 date >> ${REGRESSIONTEST_LOG}

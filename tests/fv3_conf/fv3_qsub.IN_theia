@@ -13,7 +13,7 @@ set -eux
 set +x
 source ./module-setup.sh
 module use $( pwd -P )
-module load modules.fv3
+module load modules.fcst
 module list
 
 set -x
@@ -29,7 +29,7 @@ export LD_BIND_NOW=1
 # Avoid job errors because of filesystem synchronization delays
 sync && sleep 1
 
-mpirun -prepend-rank -np $PBS_NP ./fv3.exe
+mpirun -prepend-rank -np $PBS_NP ./fcst.exe
 
 echo "Model ended:    " `date`
 

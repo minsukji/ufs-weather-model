@@ -239,7 +239,7 @@ submit_and_wait() {
   eval "$set_x"
 }
 
-check_results() {
+check_results_weather() {
 
   [ -o xtrace ] && set_x='set -x' || set_x='set +x'
   set +x
@@ -356,6 +356,147 @@ check_results() {
   eval "$set_x"
 }
 
+check_results_s2s() {
+
+  [ -o xtrace ] && set_x='set -x' || set_x='set +x'
+  set +x
+
+  ROCOTO=${ROCOTO:-false}
+  ECFLOW=${ECFLOW:-false}
+
+  # Default compiler "intel"
+  export COMPILER=${NEMS_COMPILER:-intel}
+
+  local test_status='PASS'
+
+  # Give one minute for data to show up on file system
+  #sleep 60
+
+  echo                                                       >  ${REGRESSIONTEST_LOG}
+  echo "baseline dir = ${RTPWD}/${CNTL_DIR}"                 >> ${REGRESSIONTEST_LOG}
+  echo "mediator baseline dir = ${RTPWD}/${CNTLMED_DIR}"     >> ${REGRESSIONTEST_LOG}
+  echo "working dir  = ${RUNDIR}"                            >> ${REGRESSIONTEST_LOG}
+  echo "Checking test ${TEST_NR} ${TEST_NAME} results ...."  >> ${REGRESSIONTEST_LOG}
+  echo
+  echo "baseline dir = ${RTPWD}/${CNTL_DIR}"
+  echo "mediator baseline dir = ${RTPWD}/${CNTLMED_DIR}"
+  echo "working dir  = ${RUNDIR}"
+  echo "Checking test ${TEST_NR} ${TEST_NAME} results ...."
+
+  if [[ ${CREATE_BASELINE} = false ]]; then
+    #
+    # --- regression test comparison
+    #
+    for i in ${LIST_FILES} ; do
+      printf %s " Comparing " $i " ....." >> ${REGRESSIONTEST_LOG}
+      printf %s " Comparing " $i " ....."
+
+      crst=''
+      if [[ $i =~ RESTART/ ]]; then
+        crst=RESTART/$(basename $i)
+      fi
+
+      if [[ ! -f ${RUNDIR}/$i ]] ; then
+
+        echo ".......MISSING file" >> ${REGRESSIONTEST_LOG}
+        echo ".......MISSING file"
+        test_status='FAIL'
+
+      elif [[ ! -f ${RTPWD}/${CNTL_DIR}/$i && ! -f ${RTPWD}/${CNTLMED_DIR}/$i && ! -f ${RTPWD}/${CNTL_DIR}/$crst ]] ; then
+
+        echo ".......MISSING baseline" >> ${REGRESSIONTEST_LOG}
+        echo ".......MISSING baseline"
+        test_status='FAIL'
+
+      elif [[ $COMPILER == "gnu" && $i == "RESTART/fv_core.res.nc" ]] ; then
+
+        # Although identical in ncdiff, RESTART/fv_core.res.nc differs in byte 469, line 3,
+        # for the fv3_control_32bit test between each run (without changing the source code)
+        # for GNU compilers - skip comparison.
+        echo ".......SKIP for gnu compilers" >> ${REGRESSIONTEST_LOG}
+        echo ".......SKIP for gnu compilers"
+
+      else
+
+        if [[ $i =~ mediator ]]; then
+          d=$( cmp ${RTPWD}/${CNTLMED_DIR}/$i ${RUNDIR}/$i | wc -l )
+        elif [[ $i =~ ufs.s2s ]]; then
+          d=$( cmp ${RTPWD}/${CNTLMED_DIR}/$i ${RUNDIR}/$i | wc -l )
+        elif [[ $i =~ RESTART/ ]]; then
+          d=$( cmp ${RTPWD}/${CNTL_DIR}/$crst ${RUNDIR}/$i | wc -l )
+        else
+          d=$( cmp ${RTPWD}/${CNTL_DIR}/$i ${RUNDIR}/$i | wc -l )
+        fi
+
+        if [[ $d -ne 0 ]] ; then
+          echo ".......NOT OK" >> ${REGRESSIONTEST_LOG}
+          echo ".......NOT OK"
+          test_status='FAIL'
+        else
+          echo "....OK" >> ${REGRESSIONTEST_LOG}
+          echo "....OK"
+        fi
+
+      fi
+
+    done
+
+  else
+    #
+    # --- create baselines
+    #
+    echo;echo "Moving baseline ${TEST_NR} ${TEST_NAME} files ...."
+    echo;echo "Moving baseline ${TEST_NR} ${TEST_NAME} files ...." >> ${REGRESSIONTEST_LOG}
+    if [[ ! -d ${NEW_BASELINE}/${CNTL_DIR}/RESTART ]] ; then
+      echo " mkdir -p ${NEW_BASELINE}/${CNTL_DIR}/RESTART" >> ${REGRESSIONTEST_LOG}
+      mkdir -p ${NEW_BASELINE}/${CNTL_DIR}/RESTART
+    fi
+    if [[ ${CNTLMED_DIR} =~ MEDIATOR && ! -d ${NEW_BASELINE}/${CNTLMED_DIR} ]]; then
+      echo " mkdir -p ${NEW_BASELINE}/${CNTLMED_DIR}" >> ${REGRESSIONTEST_LOG}
+      mkdir -p ${NEW_BASELINE}/${CNTLMED_DIR}
+    fi
+
+    for i in ${LIST_FILES} ; do
+      printf %s " Moving " $i " ....."
+      printf %s " Moving " $i " ....."   >> ${REGRESSIONTEST_LOG}
+      if [[ -f ${RUNDIR}/$i ]] ; then
+        if [[ $i =~ RESTART/ ]]; then
+          cp ${RUNDIR}/$i ${NEW_BASELINE}/${CNTL_DIR}/RESTART/$(basename $i)
+        elif [[ $i =~ mediator ]]; then
+          cp ${RUNDIR}/$i ${NEW_BASELINE}/${CNTLMED_DIR}
+        elif [[ $i =~ ufs.s2s ]]; then
+          cp ${RUNDIR}/$i ${NEW_BASELINE}/${CNTLMED_DIR}
+        else
+          cp ${RUNDIR}/${i} ${NEW_BASELINE}/${CNTL_DIR}/${i}
+        fi
+      else
+        echo ".... missing " ${RUNDIR}/$i
+        echo ".... missing " ${RUNDIR}/$i >> ${REGRESSIONTEST_LOG}
+        test_status='FAIL'
+      fi
+    done
+
+  fi
+
+  echo "Test ${TEST_NR} ${TEST_NAME} ${test_status}" >> ${REGRESSIONTEST_LOG}
+  echo                                               >> ${REGRESSIONTEST_LOG}
+  echo "Test ${TEST_NR} ${TEST_NAME} ${test_status}"
+  echo
+
+  if [[ $test_status = 'FAIL' ]]; then
+    if [[ ${UNIT_TEST} == false ]]; then
+      echo "${TEST_NAME} ${TEST_NR} failed in check_result" >> $PATHRT/fail_test
+    else
+      echo ${TEST_NR} $TEST_NAME >> $PATHRT/fail_unit_test
+    fi
+
+    if [[ $ROCOTO = true || $ECFLOW == true ]]; then
+      exit 1
+    fi
+  fi
+
+  eval "$set_x"
+}
 
 kill_job() {
 
@@ -383,7 +524,11 @@ rocoto_create_compile_task() {
   if [[ "Q$APP" != Q ]] ; then
       rocoto_cmd="&PATHRT;/appbuild.sh &PATHTR;/FV3 $APP $COMPILE_NR"
   else
+    if [[ $S2S == true ]]; then
+      rocoto_cmd="$PATHRT/compile.sh ${PATHTR}/FV3 $MACHINE_ID \"${NEMS_VER}\" $COMPILE_NR"
+    else
       rocoto_cmd="&PATHRT;/compile_cmake.sh &PATHTR; $MACHINE_ID \"${NEMS_VER}\" $COMPILE_NR"
+    fi
   fi
 
   # serialize WW3 builds. FIXME
@@ -411,6 +556,22 @@ rocoto_create_compile_task() {
     BUILD_WALLTIME="01:00:00"
   fi
 
+  if [[ $S2S == true && ${COMPILE_NR_DEP} -gt 0 ]]; then
+  cat << EOF >> $ROCOTO_XML
+  <task name="compile_${COMPILE_NR}" maxtries="3">
+    <dependency> <taskdep task="compile_${COMPILE_NR_DEP}"/></dependency>
+    <command>$rocoto_cmd</command>
+    <jobname>compile_${COMPILE_NR}</jobname>
+    <account>${ACCNR}</account>
+    <queue>${COMPILE_QUEUE}</queue>
+    <partition>${PARTITION}</partition>
+    <cores>${BUILD_CORES}</cores>
+    <walltime>${BUILD_WALLTIME}</walltime>
+    <join>&LOG;/compile_${COMPILE_NR}.log</join>
+    ${NATIVE}
+  </task>
+EOF
+  else
   cat << EOF >> $ROCOTO_XML
   <task name="compile_${COMPILE_NR}" maxtries="3">
     $DEP_STRING
@@ -425,12 +586,21 @@ rocoto_create_compile_task() {
     ${NATIVE}
   </task>
 EOF
+  fi
 }
 
 rocoto_create_run_task() {
 
   if [[ $DEP_RUN != '' ]]; then
-    DEP_STRING="<and> <taskdep task=\"compile_${COMPILE_NR}\"/> <taskdep task=\"${DEP_RUN}${RT_SUFFIX}\"/> </and>"
+    if [[ $S2S == true ]]; then
+      if [[ $CREATE_BASELINE == true ]] || [[ $WARM_START == .T. ]]; then
+        DEP_STRING="<and> <taskdep task=\"compile_${COMPILE_NR}\"/> <taskdep task=\"${DEP_RUN}${RT_SUFFIX}\"/> </and>"
+      else
+        DEP_STRING="<taskdep task=\"compile_${COMPILE_NR}\"/>"
+      fi
+    else
+      DEP_STRING="<and> <taskdep task=\"compile_${COMPILE_NR}\"/> <taskdep task=\"${DEP_RUN}${RT_SUFFIX}\"/> </and>"
+    fi
   else
     DEP_STRING="<taskdep task=\"compile_${COMPILE_NR}\"/>"
   fi
@@ -489,15 +659,19 @@ rocoto_run() {
 
 }
 
-
 ecflow_create_compile_task() {
 
   new_compile=true
 
+  if [ $S2S == true ]; then
+    ecflow_cmd="$PATHRT/compile.sh ${PATHTR}/FV3 $MACHINE_ID \"${NEMS_VER}\" $COMPILE_NR > ${LOG_DIR}/compile_${COMPILE_NR}.log 2>&1 &"
+  else
+    ecflow_cmd="$PATHRT/run_compile.sh ${PATHRT} ${RUNDIR_ROOT} \"${NEMS_VER}\" $COMPILE_NR > ${LOG_DIR}/compile_${COMPILE_NR}.log 2>&1 &"
+  fi
 
   cat << EOF > ${ECFLOW_RUN}/${ECFLOW_SUITE}/compile_${COMPILE_NR}.ecf
 %include <head.h>
-$PATHRT/run_compile.sh ${PATHRT} ${RUNDIR_ROOT} "${NEMS_VER}" $COMPILE_NR > ${LOG_DIR}/compile_${COMPILE_NR}.log 2>&1 &
+$ecflow_cmd
 %include <tail.h>
 EOF
 
@@ -524,11 +698,18 @@ EOF
   echo "      label job_id ''" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
   echo "      label job_status ''" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
   echo "      inlimit max_jobs" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
+
   if [[ $DEP_RUN != '' ]]; then
-    if [[ ${UNIT_TEST} == false ]]; then
-      echo "      trigger compile_${COMPILE_NR} == complete and ${DEP_RUN}${RT_SUFFIX} == complete" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
-    else
+    if [[ $UNIT_TEST == true ]]; then
       echo "      trigger compile_${COMPILE_NR} == complete and ${DEP_RUN} == complete" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
+    elif [[ $S2S == true ]]; then
+      if [[ $CREATE_BASELINE == true ]] || [[ $WARM_START == .T. ]]; then
+        echo "      trigger compile_${COMPILE_NR} == complete and ${DEP_RUN}${RT_SUFFIX} == complete" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
+      else
+        echo "      trigger compile_${COMPILE_NR} == complete" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
+      fi
+    else
+      echo "      trigger compile_${COMPILE_NR} == complete and ${DEP_RUN}${RT_SUFFIX} == complete" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def
     fi
   else
     echo "      trigger compile_${COMPILE_NR} == complete" >> ${ECFLOW_RUN}/${ECFLOW_SUITE}.def

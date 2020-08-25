@@ -15,7 +15,7 @@ set -eux
 set +x
 source ./module-setup.sh
 module use $( pwd -P )
-module load modules.fv3
+module load modules.fcst
 module list
 set -x
 
@@ -24,7 +24,7 @@ echo "Model started:  " `date`
 export OMP_NUM_THREADS=@[THRD]
 export I_MPI_DEBUG=4
 
-mpirun -l -n @[TASKS] ./fv3.exe
+mpirun -l -n @[TASKS] ./fcst.exe
 
 echo "Model ended:    " `date`
 

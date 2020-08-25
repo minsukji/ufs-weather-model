@@ -28,7 +28,7 @@ else
   PATHTR=$1
   MACHINE_ID=$2
   MAKE_OPT=${3:-}
-  BUILD_NAME=fv3${4:+_$4}
+  BUILD_NAME=fcst${4:+_$4}
   clean_before=${5:-YES}
   clean_after=${6:-YES}
 fi
