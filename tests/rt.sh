@@ -392,16 +392,8 @@ wf_max_builds=10
 
 TESTS_FILE='rt_weather.conf'
 
-<<<<<<< HEAD
-if [[ $MACHINE_ID = orion.* ]]; then
-  TESTS_FILE='rt_orion.conf'
-fi
-
 while getopts ":acfsl:mn:kreh" opt; do
-=======
 SET_ID='standard'
-while getopts ":cfsl:mn:kreh" opt; do
->>>>>>> upstream/develop
   case $opt in
     a)
       S2S=true
