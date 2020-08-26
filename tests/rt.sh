@@ -393,7 +393,6 @@ wf_max_builds=10
 TESTS_FILE='rt_weather.conf'
 
 while getopts ":acfsl:mn:kreh" opt; do
-SET_ID='standard'
   case $opt in
     a)
       S2S=true
