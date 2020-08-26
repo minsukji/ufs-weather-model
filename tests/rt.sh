@@ -392,11 +392,16 @@ wf_max_builds=10
 
 TESTS_FILE='rt_weather.conf'
 
+<<<<<<< HEAD
 if [[ $MACHINE_ID = orion.* ]]; then
   TESTS_FILE='rt_orion.conf'
 fi
 
 while getopts ":acfsl:mn:kreh" opt; do
+=======
+SET_ID='standard'
+while getopts ":cfsl:mn:kreh" opt; do
+>>>>>>> upstream/develop
   case $opt in
     a)
       S2S=true
@@ -465,13 +470,13 @@ if [[ $MACHINE_ID = hera.* ]] || [[ $MACHINE_ID = orion.* ]] || [[ $MACHINE_ID =
   if [ $S2S == true ]; then
     RTPWD=${RTPWD:-$DISKNM/FV3-MOM6-CICE5/develop-20200812}
   else
-    RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200812/${COMPILER^^}}
+    RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200825/${COMPILER^^}}
   fi
 else
   if [ $S2S == true ]; then
     RTPWD=${RTPWD:-$DISKNM/FV3-MOM6-CICE5/develop-20200812}
   else
-    RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200812}
+    RTPWD=${RTPWD:-$DISKNM/NEMSfv3gfs/develop-20200825}
   fi
 fi
 
