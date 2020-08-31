@@ -2,8 +2,8 @@ name: Pull Request Tests
 
 on:
 #  push:
-#    branches:
-#    - feature/ContInteg-tests
+    branches:
+    - feature/ContInteg-tests
   pull_request:
     branches:
     - feature/ContInteg-tests
