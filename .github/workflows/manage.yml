@@ -3,7 +3,7 @@ name: Manage workflows
 on:
   workflow_run:
     workflows: ["Pull Request Tests"]
-    branches: [feature/ContInteg-tests]
+    #branches: [feature/ContInteg-tests]
     types:
       - requested
 
@@ -22,6 +22,9 @@ jobs:
           echo "GITHUB_REF: ${GITHUB_REF}"
           echo "GITHUB_HEAD_REF: ${GITHUB_HEAD_REF}"
           echo "GITHUB_BASE_REF: ${GITHUB_BASE_REF}"
+          echo "====================================="
+          cat ${GITHUB_EVENT_PATH} # workflow_run.id
+          echo "====================================="
           cd ${GITHUB_WORKSPACE}/tests/ci
           repo="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs"
           tr_id=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py get_trigger_id)
