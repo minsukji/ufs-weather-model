@@ -1,0 +1,16 @@
+name: Dummy2-Tests
+
+on:
+  workflow_run:
+    workflows: ["Dummy-Tests"]
+    types:
+      - requested
+
+jobs:
+  job1:
+    name: Job 1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Speak
+        run: echo "Hello from Dummy2=========="

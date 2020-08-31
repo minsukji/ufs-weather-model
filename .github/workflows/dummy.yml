@@ -1,4 +1,4 @@
-name: Dummy Tests
+name: Dummy-Tests
 
 on:
   push:
