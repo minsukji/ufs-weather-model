@@ -44,7 +44,7 @@ fi
 export ESMFMKFILE=${ESMFMKFILE:-/usr/local/lib/esmf.mk}
 
 ##
-## NCEP libraries (need to download and build manually, see doc/README_{UBUNTU,CENTOS,...}.txt and https://github.com/NCAR/NCEPlibs)
+## NCEP libraries
 ##
 export NCEPLIBS_DIR=${NCEPLIBS_DIR:-/usr/local/NCEPlibs}
 export bacio_DIR=${NCEPLIBS_DIR}/bacio-2.4.0
