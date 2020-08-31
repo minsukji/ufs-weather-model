@@ -3,7 +3,7 @@ name: Manage workflows
 on:
   workflow_run:
     workflows: ["Pull Request Tests"]
-    branches: [feature/ContInteg-tests]
+    #branches: [feature/ContInteg-tests]
     types:
       - requested
 
