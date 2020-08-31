@@ -1,0 +1,21 @@
+name: Dummy Tests
+
+on:
+  push:
+    branches:
+    - feature/ContInteg-tests
+  pull_request:
+    branches:
+    - feature/ContInteg-tests
+
+jobs:
+  setup:
+    name: Dummy 1
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout codes
+      uses: actions/checkout@v2
+
+    - name: Display messages
+      run: echo "Hello from Dummy=========="
