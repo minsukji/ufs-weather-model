@@ -1,4 +1,4 @@
-name: Pull_Request_Tests
+name: Pull Request Tests
 
 on:
   push:
@@ -26,6 +26,11 @@ jobs:
     - name: Parse cases
       id: parse
       run: |
+        echo "GITHUB_SHA: ${GITHUB_SHA}"
+        echo "GITHUB_REF: ${GITHUB_REF}"
+        echo "GITHUB_HEAD_REF: ${GITHUB_HEAD_REF}"
+        echo "GITHUB_BASE_REF: ${GITHUB_BASE_REF}"
+
         name_=$(sed -n 1p ${GITHUB_WORKSPACE}/tests/ci/ci.test)
         case_=$(sed -n 2p ${GITHUB_WORKSPACE}/tests/ci/ci.test)
         img_=$(sed -n 3p ${GITHUB_WORKSPACE}/tests/ci/ci.test)
