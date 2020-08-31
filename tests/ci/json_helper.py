@@ -18,6 +18,7 @@ def cancel_workflow(data):
         re.search(os.environ["GITHUB_ACTOR"], x["head_repository"]["owner"]["login"]) and
         x["id"]!=int(os.environ["GITHUB_RUN_ID"]) and
         x["id"]!=int(os.environ["TRIGGER_ID"]) and
+        x["head_branch"]==os.environ["TRIGGER_BR"] and
         (x["status"]=="queued" or x["status"]=="in_progress")]
 
   return wfs
@@ -30,6 +31,8 @@ def main():
     print(ans)
   elif sys.argv[1]=="get_trigger_id":
     print(json.load(sys.stdin)["workflow_run"]["id"])
+  elif sys.argv[1]=="get_trigger_br":
+    print(json.load(sys.stdin)["workflow_run"]["head_branch"])
   elif sys.argv[1]=="cancel_workflow":
     data = json.load(sys.stdin)["workflow_runs"]
     wfs = cancel_workflow(data)
