@@ -40,7 +40,7 @@ jobs:
         echo "image name: $img_"
 
   build:
-    name: Build (${{ matrix.bld_set }})
+    name: Build ${{ matrix.bld_set }}
     needs: setup
     runs-on: ubuntu-20.04
 
@@ -79,7 +79,7 @@ jobs:
         path: tests/ci/artifact.tar.bz2
 
   utest:
-    name: Test ${{ matrix.test_set }})
+    name: Test ${{ matrix.test_set }}
     needs: [setup,build]
     #runs-on: self-hosted
     runs-on: ubuntu-20.04
