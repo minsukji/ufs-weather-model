@@ -2,9 +2,11 @@ name: Pull request tests
 
 on:
   push:
-    branches: ['develop']
+    branches: ['feature/ci-regional-model']
+    #branches: ['develop']
   pull_request:
-    branches: ['develop']
+    branches: ['feature/ci-regional-model']
+    #branches: ['develop']
 
 jobs:
   setup:
@@ -12,7 +14,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     outputs:
-      tn: ${{ steps.parse.outputs.tn }}
       bld: ${{ steps.parse.outputs.bld }}
       test: ${{ steps.parse.outputs.test }}
       img: ${{ steps.parse.outputs.img }}
@@ -25,18 +26,15 @@ jobs:
       id: parse
       run: |
         cd ${GITHUB_WORKSPACE}/tests/ci
-        parsed_output=( $(./parse.sh) )
-        name_=${parsed_output[0]}
-        bld_=${parsed_output[1]}
-        test_=${parsed_output[2]}
-        img_=${parsed_output[3]}
+        IFS='|'; parsed_output=( $(./setup.py) )
+        bld_=${parsed_output[0]}
+        test_=${parsed_output[1]}
+        img_=ci-test-weather
 
-        echo "::set-output name=tn::$name_"
         echo "::set-output name=bld::$bld_"
         echo "::set-output name=test::$test_"
         echo "::set-output name=img::$img_"
 
-        echo "test name : $name_"
         echo "build set : $bld_"
         echo "test set  : $test_"
         echo "image name: $img_"
@@ -61,7 +59,7 @@ jobs:
         printf '{\n    "experimental": true\n}' | sudo tee /etc/docker/daemon.json >/dev/null
         sudo systemctl restart docker
         sleep 10
-        cd tests/ci && ./ci.sh -n ${{ needs.setup.outputs.tn }} -b ${{ matrix.bld_set }}
+        cd tests/ci && ./ci.sh -n ${{ matrix.name }} -b ${{ matrix.case }}
 
     - name: Free up disk space
       run: |
@@ -81,9 +79,10 @@ jobs:
         path: tests/ci/artifact.tar.bz2
 
   utest:
-    name: Unit test (${{ needs.setup.outputs.tn }}, ${{ matrix.test_set }})
+    name: Test ${{ matrix.test_set }})
     needs: [setup,build]
-    runs-on: self-hosted
+    #runs-on: self-hosted
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
@@ -101,7 +100,7 @@ jobs:
         docker load --input ${{ needs.setup.outputs.img }}.tar.gz && rm -f ${{ needs.setup.outputs.img }}.tar.gz
 
     - name: Run utest
-      run: ./ci.sh -n ${{ needs.setup.outputs.tn }} -r ${{ matrix.test_set }}
+      run: ./ci.sh -n ${{ matrix.name }} -r ${{ matrix.case }}
 
     - name: Upload memory usage file
       if: ${{ always() }}
