@@ -40,7 +40,7 @@ def main():
     print(json.load(sys.stdin)["workflow_run"]["head_branch"])
   elif sys.argv[1]=="base_sha":
     print(json.load(sys.stdin)["commit"]["sha"])
-  elif sys.argv[1]=="comp_sha";
+  elif sys.argv[1]=="comp_sha":
     print(json.load(sys.stdin)["sha"])
   elif sys.argv[1]=="head_sha":
     print(json.load(sys.stdin)["workflow_run"]["head_sha"]
