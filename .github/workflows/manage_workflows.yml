@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+          ref: ${{ github.event.pull_request.head.sha }}
 
 #          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
 #          cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
