@@ -32,7 +32,9 @@ jobs:
           echo "GITHUB_HEAD_REF is $GITHUB_HEAD_REF"
           git clone -q https://github.com/minsukji/ufs-weather-model .
           ls ${GITHUB_WORKSPACE}
-
+          echo "=================================="
+          cat ${GITHUB_EVENT_PATH}
+          echo "=================================="
 
 
 #          cd ${GITHUB_WORKSPACE}
