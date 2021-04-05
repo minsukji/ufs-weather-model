@@ -16,6 +16,7 @@ result() {
 declare -A base fv3 mom6 cice ww3 stoch fms nems cmeps datm cmake
 submodules="fv3 mom6 cice ww3 stoch fms nems cmeps datm cmake"
 comment=''
+ownerID=$1
 
 # Base branch: this is the top of develop of ufs-weather-model
 base[repo]='https://github.com/ufs-community/ufs-weather-model'
@@ -92,5 +93,5 @@ for submodule in $submodules; do
   fi
 done
 
-result
+result $ownerID
 exit 0
