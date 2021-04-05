@@ -30,6 +30,9 @@ jobs:
           app="Accept: application/vnd.github.v3+json"
           head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
           echo $head_sha
+          echo "=================================="
+          curl -sS -H "app" https://api.github.com/repos/ufs-community/ufs-weather-model/pulls
+          echo "=================================="
           pr_number=$(curl -sS -H "app" https://api.github.com/repos/ufs-community/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
           echo $pr_number
           #comment_body="$(./repo-check.sh MinsukJi-NOAA)"
