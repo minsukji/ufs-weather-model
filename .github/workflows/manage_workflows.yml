@@ -25,12 +25,20 @@ jobs:
 
       - name: Check if PR branch is current
         run: |
+          apt-get install jq
+          which jq
           pwd
           echo ${GITHUB_WORKSPACE}
           echo "GITHUB_SHA is $GITHUB_SHA"
           echo "GITHUB_REF is $GITHUB_REF"
           echo "GITHUB_HEAD_REF is $GITHUB_HEAD_REF"
-          git clone -q https://github.com/minsukji/ufs-weather-model .
+          myname=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_repository.full_name')
+          echo $myname
+          mysha=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_sha')
+          echo $mysha
+          git clone -q https://github.com/$myname .
+          git checkout $mysha
+          git submodule update --init --recursive
           ls ${GITHUB_WORKSPACE}
           echo "=================================="
           cat ${GITHUB_EVENT_PATH}
