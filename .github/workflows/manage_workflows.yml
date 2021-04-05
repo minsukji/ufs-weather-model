@@ -20,12 +20,13 @@ jobs:
 #
 #          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
 #          cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
+#          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
+#          cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
+
       - name: Check if PR branch is current
         run: |
           pwd
           echo ${GITHUB_WORKSPACE}
-#          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
-#          cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
           echo "GITHUB_SHA is $GITHUB_SHA"
           echo "GITHUB_REF is $GITHUB_REF"
           echo "GITHUB_HEAD_REF is $GITHUB_HEAD_REF"
