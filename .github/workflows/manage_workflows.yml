@@ -19,7 +19,13 @@ jobs:
 #
       - name: Check if PR branch is current
         run: |
+          pwd
+          echo ${GITHUB_WORKSPACE}
+          ls ${GITHUB_WORKSPACE}
           git clone -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
+          pwd
+          echo ${GITHUB_WORKSPACE}
+          ls ${GITHUB_WORKSPACE}
           cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
           app="Accept: application/vnd.github.v3+json"
           head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
