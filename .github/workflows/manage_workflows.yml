@@ -31,8 +31,8 @@ jobs:
           echo "=================================="
           pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
           echo $pr_number
-          #comment_body="$(./repo-check.sh MinsukJi-NOAA)"
-          #echo $comment_body
+          comment_body="$(./repo-check.sh MinsukJi-NOAA)"
+          echo $comment_body
           if [[ -n $pr_number ]]; then
             pr_uid=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py pr_uid)
             comment_body="$(./repo-check.sh $pr_uid)"
