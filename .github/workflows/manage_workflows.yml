@@ -12,13 +12,14 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout codes
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
+#      - name: Checkout codes
+#        uses: actions/checkout@v2
+#        with:
+#          submodules: recursive
+#
       - name: Check if PR branch is current
         run: |
+          git clone -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
           cd ${GITHUB_WORKSPACE}/tests/ci
           app="Accept: application/vnd.github.v3+json"
           head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)

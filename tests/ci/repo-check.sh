@@ -72,7 +72,10 @@ for submodule in $submodules; do
 done
 
 # Check if the head branch is up to date with the base branch
-cd ${GITHUB_WORKSPACE}
+#cd ${GITHUB_WORKSPACE}
+echo ${GITHUB_WORKSPACE}
+ls ${GITHUB_WORKSPACE}
+cd ufs-weather-model
 git remote add upstream ${base['repo']}
 git fetch -q upstream
 common=$(git merge-base upstream/${base['branch']} @)
