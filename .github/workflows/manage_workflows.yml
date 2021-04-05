@@ -41,33 +41,24 @@ jobs:
           mysha="${mysha#\"}"
           echo $mysha
           git clone -q https://github.com/$myname .
-          git checkout $mysha
-          git submodule update --init --recursive
-          ls ${GITHUB_WORKSPACE}
+          git checkout -q $mysha
+          git submodule -q update --init --recursive
+          cd tests/ci
+          app="Accept: application/vnd.github.v3+json"
+          head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
+          echo $head_sha
           echo "=================================="
-          cat ${GITHUB_EVENT_PATH}
-          echo "=================================="
-
-
-#          cd ${GITHUB_WORKSPACE}
-#          git checkout ${}
-#          git submodule update --init --recursive
-#          cd tests/ci
-#          app="Accept: application/vnd.github.v3+json"
-#          head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
-#          echo $head_sha
-#          echo "=================================="
-#          pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
-#          echo $pr_number
-#          comment_body="$(./repo-check.sh MinsukJi-NOAA)"
-#          echo $comment_body
-#          if [[ -n $pr_number ]]; then
-#            pr_uid=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py pr_uid)
-#            comment_body="$(./repo-check.sh $pr_uid)"
-#            echo $comment_body
-#            url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
-#            curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
-#          fi
+          pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
+          echo $pr_number
+          comment_body="$(./repo-check.sh MinsukJi-NOAA)"
+          echo $comment_body
+          if [[ -n $pr_number ]]; then
+            pr_uid=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py pr_uid)
+            comment_body="$(./repo-check.sh $pr_uid)"
+            echo $comment_body
+            url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
+            curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
+          fi
 
   job2:
     name: Cancel workflows
