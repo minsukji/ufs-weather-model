@@ -33,8 +33,12 @@ jobs:
           echo "GITHUB_REF is $GITHUB_REF"
           echo "GITHUB_HEAD_REF is $GITHUB_HEAD_REF"
           myname=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_repository.full_name')
+          myname="${myname%\"}"
+          myname="${myname#\"}"
           echo $myname
           mysha=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_sha')
+          mysha="${mysha%\"}"
+          mysha="${mysha#\"}"
           echo $mysha
           git clone -q https://github.com/$myname .
           git checkout $mysha
