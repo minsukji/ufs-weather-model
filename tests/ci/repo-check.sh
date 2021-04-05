@@ -82,7 +82,8 @@ if [[ $common != ${base[sha]} ]]; then
 fi
 
 for submodule in $submodules; do
-  eval cd ${GITHUB_WORKSPACE}/'${'$submodule'[dir]}'
+  #eval cd ${GITHUB_WORKSPACE}/'${'$submodule'[dir]}'
+  eval cd ${GITHUB_WORKSPACE}/ufs-weather-model/'${'$submodule'[dir]}'
   eval git remote add upstream '${'$submodule'[repo]}'
   git fetch -q upstream
   common=$(eval git merge-base upstream/'${'$submodule'[branch]}' @)
