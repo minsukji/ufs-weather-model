@@ -8,6 +8,29 @@ on:
 
 jobs:
   job1:
+    name: Check PR branch
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout codes
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Check if PR branch is current
+        run: |
+          cd ${GITHUB_WORKSPACE}/tests/ci
+          app="Accept: application/vnd.github.v3+json"
+          head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
+          pr_number=$(curl -sS -H "app" https://api.github.com/repos/ufs-community/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
+          if [[ -n $pr_number ]]; then
+            pr_uid=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py pr_uid)
+            comment_body="$(./repo-check.sh $pr_uid)"
+            url=https://api.github.com/repos/MinsukJi-NOAA/check-uptodate/issues/$pr_number/comments
+            curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
+          fi
+
+  job2:
     name: Cancel workflows
     runs-on: ubuntu-20.04
 
@@ -29,7 +52,7 @@ jobs:
           if [[ $check == no ]]; then
             echo "run-ci is not requested"
             echo "CURR_JOB=cancelled" >> $GITHUB_ENV
-            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" ${repo}/$tr_id/cancel
+            curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" ${repo}/$tr_id/cancel
           else
             echo "run-ci is requested"
             echo "CURR_JOB=running" >> $GITHUB_ENV
@@ -46,11 +69,11 @@ jobs:
           export TRIGGER_BR
           cd ${GITHUB_WORKSPACE}/tests/ci
           repo="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs"
-          cancel_ids=$(curl -H "Accept: application/vnd.github.v3+json" ${repo} | ./json_helper.py cancel_workflow)
+          cancel_ids=$(curl -sS -H "Accept: application/vnd.github.v3+json" ${repo} | ./json_helper.py cancel_workflow)
           echo "cancel ids: $cancel_ids"
           if [[ $cancel_ids != '' ]]; then
             for i in $cancel_ids; do
-              curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" ${repo}/$i/cancel
+              curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" ${repo}/$i/cancel
             done
           fi
         if: ${{ env.CURR_JOB == 'running' }}
