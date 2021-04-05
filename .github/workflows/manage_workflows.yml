@@ -19,10 +19,7 @@ jobs:
 #
       - name: Check if PR branch is current
         run: |
-          pwd
-          echo ${GITHUB_WORKSPACE}
-          ls ${GITHUB_WORKSPACE}
-          git clone -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
+          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
           pwd
           echo ${GITHUB_WORKSPACE}
           ls ${GITHUB_WORKSPACE}
@@ -41,7 +38,7 @@ jobs:
             pr_uid=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py pr_uid)
             comment_body="$(./repo-check.sh $pr_uid)"
             echo $comment_body
-            url=https://api.github.com/repos/MinsukJi-NOAA/check-uptodate/issues/$pr_number/comments
+            url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
             curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
           fi
 
