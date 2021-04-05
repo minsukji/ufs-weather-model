@@ -25,7 +25,7 @@ jobs:
 
       - name: Check if PR branch is current
         run: |
-          apt-get install jq
+          sudo apt-get install jq
           which jq
           pwd
           echo ${GITHUB_WORKSPACE}
