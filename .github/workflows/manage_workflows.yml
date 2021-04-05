@@ -33,7 +33,7 @@ jobs:
           echo "=================================="
           curl -sS -H "app" https://api.github.com/repos/ufs-community/ufs-weather-model/pulls
           echo "=================================="
-          pr_number=$(curl -sS -H "app" https://api.github.com/repos/ufs-community/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
+          pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
           echo $pr_number
           #comment_body="$(./repo-check.sh MinsukJi-NOAA)"
           #echo $comment_body
