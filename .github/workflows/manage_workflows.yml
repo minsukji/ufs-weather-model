@@ -14,13 +14,9 @@ jobs:
     steps:
       - name: Check if PR branch is current
         run: |
-          myname=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_repository.full_name')
-          myname="${myname%\"}"
-          myname="${myname#\"}"
-          head_sha=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_sha')
-          head_sha="${head_sha%\"}"
-          head_sha="${head_sha#\"}"
-          git clone -q https://github.com/$myname .
+          repo_name=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_repository.full_name')
+          head_sha=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_sha')
+          git clone -q https://github.com/$repo_name .
           git checkout -q $head_sha
           git submodule -q update --init --recursive
           cd tests/ci
@@ -28,7 +24,7 @@ jobs:
           pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
           echo "PR number is $pr_number"
           if [[ -n $pr_number ]]; then
-            pr_uid=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_repository.owner.login')
+            pr_uid=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_repository.owner.login')
             comment_body="$(./repo-check.sh $pr_uid)"
             echo $comment_body
             url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
