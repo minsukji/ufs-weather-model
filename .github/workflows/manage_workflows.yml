@@ -26,7 +26,6 @@ jobs:
           if [[ -n $pr_number ]]; then
             pr_uid=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_repository.owner.login')
             comment_body="$(./repo-check.sh $pr_uid)"
-            echo $comment_body
             url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
             curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
           fi
