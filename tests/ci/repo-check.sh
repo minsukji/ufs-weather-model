@@ -74,16 +74,9 @@ done
 
 # Check if the head branch is up to date with the base branch
 cd ${GITHUB_WORKSPACE}
-pwd
-ls -alF
-echo "+++++++++++++++++++++++++++++++++++++++++++++"
-git remote add upstream ${base['repo']}
-git remote -v
-git branch -a
-echo "+++++++++++++++++++++++++++++++++++++++++++++"
-git fetch upstream
-echo "+++++++++++++++++++++++++++++++++++++++++++++"
-common=$(git merge-base upstream/${base['branch']} @)
+git remote add upstream ${base[repo]}
+git fetch upstream ${base[branch]}
+common=$(git merge-base upstream/${base[branch]} @)
 if [[ $common != ${base[sha]} ]]; then
   comment="* ufs-weather-model **NOT** up to date\n"
 fi
@@ -91,7 +84,7 @@ fi
 for submodule in $submodules; do
   eval cd ${GITHUB_WORKSPACE}/'${'$submodule'[dir]}'
   eval git remote add upstream '${'$submodule'[repo]}'
-  git fetch -q upstream
+  eval git fetch upstream '${'$submodule'[branch]}'
   common=$(eval git merge-base upstream/'${'$submodule'[branch]}' @)
   if (eval test $common != '${'$submodule'[sha]}'); then
     comment+="* $submodule **NOT** up to date\n"

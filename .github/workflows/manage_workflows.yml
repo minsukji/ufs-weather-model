@@ -38,7 +38,7 @@ jobs:
             pwd
             ls -alF
             echo "========================================"
-            comment_body="$(./repo-check.sh $pr_uid)"
+            comment_body="$(./repo-check.sh $pr_uid 2>/dev/null)"
             echo "========================================"
             pwd
             ls -alF
