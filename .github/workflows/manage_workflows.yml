@@ -12,49 +12,23 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-#      - name: Checkout codes
-#        uses: actions/checkout@v2
-#        with:
-#          submodules: recursive
-#          ref: ${{ github.event.pull_request.head.sha }}
-#
-#          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
-#          cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
-#          git clone -q -b feature/ci-regional-model --recursive https://github.com/MinsukJi-NOAA/ufs-weather-model
-#          cd ${GITHUB_WORKSPACE}/ufs-weather-model/tests/ci
-
       - name: Check if PR branch is current
         run: |
-          which jq
-          pwd
-          echo ${GITHUB_WORKSPACE}
-          echo "GITHUB_SHA is $GITHUB_SHA"
-          echo "GITHUB_REF is $GITHUB_REF"
-          echo "GITHUB_HEAD_REF is $GITHUB_HEAD_REF"
           myname=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_repository.full_name')
           myname="${myname%\"}"
           myname="${myname#\"}"
-          echo $myname
-          mysha=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_sha')
-          mysha="${mysha%\"}"
-          mysha="${mysha#\"}"
-          echo $mysha
+          head_sha=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_sha')
+          head_sha="${head_sha%\"}"
+          head_sha="${head_sha#\"}"
           git clone -q https://github.com/$myname .
-          git checkout -q $mysha
+          git checkout -q $head_sha
           git submodule -q update --init --recursive
-          echo "=================================="
-          git remote -v
-          echo "=================================="
           cd tests/ci
-          echo "=================================="
           app="Accept: application/vnd.github.v3+json"
-          head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
-          echo $head_sha
-          echo "=================================="
           pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
-          echo $pr_number
+          echo "PR number is $pr_number"
           if [[ -n $pr_number ]]; then
-            pr_uid=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py pr_uid)
+            pr_uid=$(cat ${GITHUB_EVENT_PATH} | jq '.workflow_run.head_repository.owner.login')
             comment_body="$(./repo-check.sh $pr_uid)"
             echo $comment_body
             url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments

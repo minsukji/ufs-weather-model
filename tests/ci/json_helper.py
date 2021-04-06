@@ -38,20 +38,16 @@ def main():
     print(json.load(sys.stdin)["workflow_run"]["id"])
   elif sys.argv[1]=="get_trigger_br":
     print(json.load(sys.stdin)["workflow_run"]["head_branch"])
-  elif sys.argv[1]=="base_sha":
-    print(json.load(sys.stdin)["commit"]["sha"])
-  elif sys.argv[1]=="comp_sha":
-    print(json.load(sys.stdin)["sha"])
-  elif sys.argv[1]=="head_sha":
-    print(json.load(sys.stdin)["workflow_run"]["head_sha"])
+  #elif sys.argv[1]=="base_sha":
+  #  print(json.load(sys.stdin)["commit"]["sha"])
+  #elif sys.argv[1]=="comp_sha":
+  #  print(json.load(sys.stdin)["sha"])
   elif sys.argv[1]=="get_pr":
     prn =  get_pr_no(json.load(sys.stdin), sys.argv[2])
     if len(prn)==0:
       print("")
     else:
       print(*prn)
-  elif sys.argv[1]=="pr_uid":
-    print(json.load(sys.stdin)["workflow_run"]["head_repository"]["owner"]["login"])
   elif sys.argv[1]=="cancel_workflow":
     data = json.load(sys.stdin)["workflow_runs"]
     wfs = cancel_workflow(data)
