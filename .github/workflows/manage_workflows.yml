@@ -43,7 +43,11 @@ jobs:
           git clone -q https://github.com/$myname .
           git checkout -q $mysha
           git submodule -q update --init --recursive
+          echo "=================================="
+          git remote -v
+          echo "=================================="
           cd tests/ci
+          echo "=================================="
           app="Accept: application/vnd.github.v3+json"
           head_sha=$(cat ${GITHUB_EVENT_PATH} | ./json_helper.py head_sha)
           echo $head_sha
