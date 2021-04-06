@@ -18,9 +18,6 @@ jobs:
           echo "Repository is $repo_name"
           head_sha=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_sha')
           echo "Commit sha is $head_sha"
-          echo "========================================"
-          ls -alF ${GITHUB_WORKSPACE}
-          echo "========================================"
           git clone -q https://github.com/$repo_name .
           git checkout -q $head_sha
           git submodule -q update --init --recursive
@@ -29,20 +26,8 @@ jobs:
           pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
           if [[ -n $pr_number ]]; then
             echo "PR number is $pr_number"
-            pwd
-            echo "========================================"
-            ls -alF
-            echo "========================================"
             pr_uid=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_repository.owner.login')
-            echo "========================================"
-            pwd
-            ls -alF
-            echo "========================================"
             comment_body="$(./repo-check.sh $pr_uid 2>/dev/null)"
-            echo "========================================"
-            pwd
-            ls -alF
-            echo "========================================"
             url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
             curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
           else
