@@ -29,7 +29,9 @@ jobs:
             pr_uid=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_repository.owner.login')
             comment_body="$(./repo-check.sh $pr_uid 2>/dev/null)"
             url=https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/issues/$pr_number/comments
-            curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
+            if [[ -n $comment_body ]]; then
+              curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "$app" $url -d '{"body": "'"${comment_body}"'"}'
+            fi
           else
             echo "This is not a pull request"
           fi
