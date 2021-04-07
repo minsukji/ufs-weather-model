@@ -17,21 +17,26 @@ jobs:
       bld: ${{ steps.parse.outputs.bld }}
       test: ${{ steps.parse.outputs.test }}
       img: ${{ steps.parse.outputs.img }}
+      msg: ${{ steps.check.outputs.msg }}
 
     steps:
-    - name: diag
-      run: |
-        pwd
-        echo ${GITHUB_WORKSPACE}
-        echo "GITHUB_SHA is $GITHUB_SHA"
-        echo "GITHUB_REF is $GITHUB_REF"
-        echo "GITHUB_HEAD_REF is $GITHUB_HEAD_REF"
-        echo "=================================="
-        cat ${GITHUB_EVENT_PATH}
-        echo "=================================="
-
     - name: Checkout codes
       uses: actions/checkout@v2
+
+    - name: Check if run-ci is requested
+      id: check
+      run: |
+        if [[ ${{github.event_name}} == pull_request ]]; then
+          sha=${{github.event.pull_request.head.sha}}
+          url=$(echo ${{github.event.pull_request.head.repo.git_commits_url}} | sed "s:{/sha}:/$sha:")
+          message="$(curl -sS -H "Accept: application/vnd.github.v3+json" $url | jq '.message')"
+          echo "::set-output name=msg::${message}"
+        elif [[ ${{github.event_name}} == push ]]; then
+          sha=${{github.event.after}}
+          url=$(echo ${{github.event.repository.git_commits_url}} | sed "s:{/sha}:/$sha:")
+          message="$(curl -sS -H "Accept: application/vnd.github.v3+json" $url | jq '.message')"
+          echo "::set-output name=msg::${message}"
+        fi
 
     - name: Parse cases
       id: parse
@@ -54,6 +59,7 @@ jobs:
     name: Build ${{ matrix.bld_set }}
     needs: setup
     runs-on: ubuntu-20.04
+    if: contains(needs.setup.outputs.msg, 'run-ci')
 
     strategy:
       fail-fast: false

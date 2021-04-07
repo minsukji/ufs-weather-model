@@ -58,7 +58,6 @@ jobs:
           if [[ $check == no ]]; then
             echo "run-ci is not requested"
             echo "CURR_JOB=cancelled" >> $GITHUB_ENV
-            curl -sS -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" ${repo}/$tr_id/cancel
           else
             echo "run-ci is requested"
             echo "CURR_JOB=running" >> $GITHUB_ENV
