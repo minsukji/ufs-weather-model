@@ -32,7 +32,7 @@ jobs:
         pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
         echo "PR number $pr_number"
         pr_uid=${{ github.event.pull_request.head.owner.login }}
-        comment_body="$(./repo-check.sh minsukji)"
+        comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
         echo $comment_body
 
   setup:
