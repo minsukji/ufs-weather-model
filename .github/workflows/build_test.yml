@@ -2,17 +2,17 @@ name: Pull request tests
 
 on:
   push:
-    branches: ['feature/ci-regional-model']
+    branches: ['feature/PRCheck']
     #branches: ['develop']
   pull_request:
-    branches: ['feature/ci-regional-model']
+    branches: ['feature/PRCheck']
     #branches: ['develop']
 
 jobs:
   prcheck:
     name: PR Check
     runs-on: ubuntu-20.04
-    if: ${{ github.event_name == pull_request }}
+    if: (${{ github.event_name }} == pull_request)
 
     steps:
     - name: Print out github context
@@ -20,26 +20,24 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
 
-    - name: Checkout codes
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-
     - name: Check if PR branch is current
       run: |
-        cd $GITHUB_WORKSPACE
-        git remote -v
-        git branch -a
         head_sha=${{ github.event.pull_request.head.sha }}
         echo "Head sha is $head_sha"
+        git clone ${{ github.event.pull_request.head.repo.git_url }} .
+        git checkout $head_sha
+        git submodule -q update --init --recursive
+        cd ${GITHUB_WORKSPACE}/tests/ci
         app="Accept: application/vnd.github.v3+json"
-        pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/workflow_test/pulls | ./json_helper.py get_pr $head_sha)
+        pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
         echo "PR number $pr_number"
-        comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
+        pr_uid=${{ github.event.pull_request.head.owner.login }}
+        comment_body="$(./repo-check.sh minsukji)"
         echo $comment_body
 
   setup:
     name: Set up
+    needs: prcheck
     runs-on: ubuntu-20.04
 
     outputs:
@@ -126,7 +124,7 @@ jobs:
 
   utest:
     name: Test ${{ matrix.test_set }}
-    needs: [setup,build]
+    needs: build
     #runs-on: self-hosted
     runs-on: ubuntu-20.04
 
