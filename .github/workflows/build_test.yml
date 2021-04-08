@@ -33,7 +33,7 @@ jobs:
         echo "Head sha is $head_sha"
         app="Accept: application/vnd.github.v3+json"
         cd $GITHUB_WORKSPACE/tests/ci
-        pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/workflow_test/pulls | ./json_helper.py get_pr $head_sha)
+        pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
         echo "PR number $pr_number"
         comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
         echo $comment_body
