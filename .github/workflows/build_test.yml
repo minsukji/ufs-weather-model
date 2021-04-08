@@ -35,7 +35,7 @@ jobs:
         cd $GITHUB_WORKSPACE/tests/ci
         pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
         echo "PR number $pr_number"
-        comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
+        comment_body="$(./repo-check.sh minsukji)"
         echo $comment_body
 
   setup:
