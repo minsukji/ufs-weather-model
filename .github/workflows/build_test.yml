@@ -9,6 +9,35 @@ on:
     #branches: ['develop']
 
 jobs:
+  prcheck:
+    name: PR Check
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == pull_request }}
+
+    steps:
+    - name: Print out github context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - name: Checkout codes
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Check if PR branch is current
+      run: |
+        cd $GITHUB_WORKSPACE
+        git remote -v
+        git branch -a
+        head_sha=${{ github.event.pull_request.head.sha }}
+        echo "Head sha is $head_sha"
+        app="Accept: application/vnd.github.v3+json"
+        pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/workflow_test/pulls | ./json_helper.py get_pr $head_sha)
+        echo "PR number $pr_number"
+        comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
+        echo $comment_body
+
   setup:
     name: Set up
     runs-on: ubuntu-20.04
