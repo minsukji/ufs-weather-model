@@ -20,20 +20,17 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
 
-    - name: Checkout codes
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        submodules: recursive
-
     - name: Check if PR branch is current
       run: |
         git remote -v
         git branch -a
         head_sha=${{ github.event.pull_request.head.sha }}
         echo "Head sha is $head_sha"
+        git clone ${{ github.event.pull_request.head.repo.git_url }} .
+        git checkout $head_sha
+        git submodule -q update --init --recursive
+        cd ${GITHUB_WORKSPACE}/tests/ci
         app="Accept: application/vnd.github.v3+json"
-        cd $GITHUB_WORKSPACE/tests/ci
         pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
         echo "PR number $pr_number"
         comment_body="$(./repo-check.sh minsukji)"
