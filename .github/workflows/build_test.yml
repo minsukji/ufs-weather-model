@@ -22,8 +22,6 @@ jobs:
 
     - name: Check if PR branch is current
       run: |
-        git remote -v
-        git branch -a
         head_sha=${{ github.event.pull_request.head.sha }}
         echo "Head sha is $head_sha"
         git clone ${{ github.event.pull_request.head.repo.git_url }} .
