@@ -2,10 +2,10 @@ name: Pull request tests
 
 on:
   push:
-    branches: ['feature/ci-regional-model']
+    branches: ['feature/PRCheck']
     #branches: ['develop']
   pull_request:
-    branches: ['feature/ci-regional-model']
+    branches: ['feature/PRCheck']
     #branches: ['develop']
 
 jobs:
