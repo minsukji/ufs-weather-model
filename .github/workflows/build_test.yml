@@ -24,8 +24,8 @@ jobs:
         elif [[ ${{github.event_name}} == pull_request ]]; then
           echo "This is a pull_request event. Check."
           head_sha=${{ github.event.pull_request.head.sha }}
-          git clone ${{ github.event.pull_request.head.repo.git_url }} .
-          git checkout $head_sha
+          git clone -q ${{ github.event.pull_request.head.repo.git_url }} .
+          git checkout -q $head_sha
           git submodule -q update --init --recursive
           cd ${GITHUB_WORKSPACE}/tests/ci
           app="Accept: application/vnd.github.v3+json"
