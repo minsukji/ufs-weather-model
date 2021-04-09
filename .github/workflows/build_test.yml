@@ -71,7 +71,7 @@ jobs:
     name: Set up
     needs: [repocheck,runcheck]
     runs-on: ubuntu-20.04
-    if: needs.repocheck.outputs.current == 'yes' && contains(needs.runcheck.outputs.cirun, 'run-ci')
+    if: needs.repocheck.outputs.current == 'yes'
 
     outputs:
       bld: ${{ steps.parse.outputs.bld }}
