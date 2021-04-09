@@ -9,63 +9,78 @@ on:
     #branches: ['develop']
 
 jobs:
-  prcheck:
-    name: PR Check
-    runs-on: ubuntu-20.04
-    if: (${{ github.event_name }} == pull_request)
-
-    steps:
-    - name: Print out github context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
-    - name: Check if PR branch is current
-      run: |
-        head_sha=${{ github.event.pull_request.head.sha }}
-        echo "Head sha is $head_sha"
-        git clone ${{ github.event.pull_request.head.repo.git_url }} .
-        git checkout $head_sha
-        git submodule -q update --init --recursive
-        cd ${GITHUB_WORKSPACE}/tests/ci
-        app="Accept: application/vnd.github.v3+json"
-        pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
-        echo "PR number $pr_number"
-        pr_uid=${{ github.event.pull_request.head.owner.login }}
-        comment_body="$(./repo-check.sh minsukji)"
-        echo $comment_body
-
-  setup:
-    name: Set up
-    needs: prcheck
+  repocheck:
+    name: Check if repos are up to date
     runs-on: ubuntu-20.04
 
     outputs:
-      bld: ${{ steps.parse.outputs.bld }}
-      test: ${{ steps.parse.outputs.test }}
-      img: ${{ steps.parse.outputs.img }}
-      msg: ${{ steps.check.outputs.msg }}
+      current: ${{ steps.check.outputs.current }}
 
     steps:
-    - name: Checkout codes
-      uses: actions/checkout@v2
+    - name: Check
+      id: check
+      run: |
+        if [[ ${{github.event_name}} == push ]]; then
+          echo "This is a push event. No need to check."
+          echo "::set-output name=current::'yes'"
+        elif [[ ${{github.event_name}} == pull_request ]]; then
+          echo "This is a pull_request event. Check."
+          head_sha=${{ github.event.pull_request.head.sha }}
+          git clone ${{ github.event.pull_request.head.repo.git_url }} .
+          git checkout $head_sha
+          git submodule -q update --init --recursive
+          cd ${GITHUB_WORKSPACE}/tests/ci
+          app="Accept: application/vnd.github.v3+json"
+          pr_number=$(curl -sS -H "app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
+          pr_uid=${{ github.event.pull_request.head.owner.login }}
+          comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
+          echo $comment_body
+          if [[ -n $comment_body ]]; then
+            echo "::set-output name=current::'no'"
+          else
+            echo "::set-output name=current::'yes'"
+          fi
+        fi
 
-    - name: Check if run-ci is requested
+  runcheck:
+    name: Check if run-ci is requested
+    runs-on: ubuntu-20.04
+
+    outputs:
+      cirun: ${{ steps.check.outputs.cirun }}
+
+    steps:
+    - name: Check
       id: check
       run: |
         if [[ ${{github.event_name}} == pull_request ]]; then
           sha=${{github.event.pull_request.head.sha}}
           url=$(echo ${{github.event.pull_request.head.repo.git_commits_url}} | sed "s:{/sha}:/$sha:")
           message="$(curl -sS -H "Accept: application/vnd.github.v3+json" $url | jq '.message')"
-          echo "::set-output name=msg::${message}"
+          echo "::set-output name=cirun::${message}"
         elif [[ ${{github.event_name}} == push ]]; then
           sha=${{github.event.after}}
           url=$(echo ${{github.event.repository.git_commits_url}} | sed "s:{/sha}:/$sha:")
           message="$(curl -sS -H "Accept: application/vnd.github.v3+json" $url | jq '.message')"
-          echo "::set-output name=msg::${message}"
+          echo "::set-output name=cirun::${message}"
         fi
 
-    - name: Parse cases
+  setup:
+    name: Set up
+    needs: [repocheck,runcheck]
+    runs-on: ubuntu-20.04
+    if: contains(needs.runcheck.outputs.cirun, 'run-ci') && contains(needs.repocheck.outputs.current, 'yes')
+
+    outputs:
+      bld: ${{ steps.parse.outputs.bld }}
+      test: ${{ steps.parse.outputs.test }}
+      img: ${{ steps.parse.outputs.img }}
+
+    steps:
+    - name: Checkout codes
+      uses: actions/checkout@v2
+
+    - name: Collect cases to run
       id: parse
       run: |
         cd ${GITHUB_WORKSPACE}/tests/ci
@@ -82,11 +97,13 @@ jobs:
         echo "test set  : $test_"
         echo "image name: $img_"
 
+        echo "repocheck: ${{needs.repocheck.outputs.current}}"
+        echo "runcheck: ${{needs.runcheck.outputs.cirun}}"
+
   build:
     name: Build ${{ matrix.bld_set }}
     needs: setup
     runs-on: ubuntu-20.04
-    if: contains(needs.setup.outputs.msg, 'run-ci')
 
     strategy:
       fail-fast: false
