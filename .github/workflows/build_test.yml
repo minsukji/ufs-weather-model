@@ -22,7 +22,7 @@ jobs:
       run: |
         if [[ ${{github.event_name}} == push ]]; then
           echo "This is a push event. No need to check."
-          echo "::set-output name=current::yes"
+          echo "::set-output name=current::'yes'"
         elif [[ ${{github.event_name}} == pull_request ]]; then
           echo "This is a pull_request event. Check."
           head_sha=${{ github.event.pull_request.head.sha }}
@@ -36,9 +36,9 @@ jobs:
           comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
           echo $comment_body
           if [[ -n $comment_body ]]; then
-            echo "::set-output name=current::no"
+            echo "::set-output name=current::'no'"
           else
-            echo "::set-output name=current::yes"
+            echo "::set-output name=current::'yes'"
           fi
         fi
 
