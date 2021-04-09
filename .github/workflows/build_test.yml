@@ -54,11 +54,13 @@ jobs:
       id: check
       run: |
         if [[ ${{github.event_name}} == pull_request ]]; then
+          echo "This is a pull_request event."
           sha=${{github.event.pull_request.head.sha}}
           url=$(echo ${{github.event.pull_request.head.repo.git_commits_url}} | sed "s:{/sha}:/$sha:")
           message="$(curl -sS -H "Accept: application/vnd.github.v3+json" $url | jq '.message')"
           echo "::set-output name=cirun::${message}"
         elif [[ ${{github.event_name}} == push ]]; then
+          echo "This is a push event."
           sha=${{github.event.after}}
           url=$(echo ${{github.event.repository.git_commits_url}} | sed "s:{/sha}:/$sha:")
           message="$(curl -sS -H "Accept: application/vnd.github.v3+json" $url | jq '.message')"
