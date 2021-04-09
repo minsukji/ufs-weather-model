@@ -141,7 +141,7 @@ jobs:
 
   utest:
     name: Test ${{ matrix.test_set }}
-    needs: build
+    needs: [setup,build]
     #runs-on: self-hosted
     runs-on: ubuntu-20.04
 
