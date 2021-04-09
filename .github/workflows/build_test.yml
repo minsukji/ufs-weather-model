@@ -82,6 +82,7 @@ jobs:
     - name: Checkout codes
       uses: actions/checkout@v2
 
+#
 #    - name: diagnostics
 #      run: |
 #        if [[ ${{needs.repocheck.outputs.current}} == 'yes' ]]; then
