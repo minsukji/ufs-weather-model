@@ -3,10 +3,8 @@ name: Pull request tests
 on:
   push:
     branches: ['feature/PRCheck']
-    #branches: ['develop']
   pull_request:
     branches: ['feature/PRCheck']
-    #branches: ['develop']
 
 jobs:
   repocheck:
