@@ -100,7 +100,7 @@ jobs:
     name: Build ${{ matrix.bld_set }}
     needs: [repocheck,runcheck,setup]
     runs-on: ubuntu-20.04
-    if: ${{needs.repocheck.outputs.current == yes}} && contains(needs.runcheck.outputs.runci, 'run-ci')
+    if: ${{needs.repocheck.outputs.current == 'yes'}} && contains(needs.runcheck.outputs.runci, 'run-ci')
 
     strategy:
       fail-fast: false
