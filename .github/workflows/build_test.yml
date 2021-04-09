@@ -69,6 +69,7 @@ jobs:
     name: Set up
     needs: [repocheck,runcheck]
     runs-on: ubuntu-20.04
+    if: needs.repocheck.outputs.current == 'yes' && contains(needs.runcheck.outputs.cirun, 'run-ci')
 
     outputs:
       bld: ${{ steps.parse.outputs.bld }}
@@ -78,6 +79,15 @@ jobs:
     steps:
     - name: Checkout codes
       uses: actions/checkout@v2
+
+    - name: diagnostics
+      run: |
+        if [[ ${{needs.repocheck.outputs.current}} == 'yes' ]]; then
+          echo "Repo is current"
+        fi
+        if [[ echo ${{needs.runcheck.outputs.cirun}} | grep run-ci >/dev/null 2>&1 ]]; then
+          echo "Running is requested"
+        fi
 
     - name: Collect cases to run
       id: parse
@@ -101,9 +111,8 @@ jobs:
 
   build:
     name: Build ${{ matrix.bld_set }}
-    needs: [repocheck,runcheck,setup]
+    needs: setup
     runs-on: ubuntu-20.04
-    if: ${{needs.repocheck.outputs.current == 'yes'}} && contains(needs.runcheck.outputs.cirun, 'run-ci')
 
     strategy:
       fail-fast: false
