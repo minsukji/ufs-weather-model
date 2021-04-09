@@ -34,8 +34,10 @@ jobs:
           comment_body="$(./repo-check.sh minsukji 2>/dev/null)"
           echo $comment_body
           if [[ -n $comment_body ]]; then
+            echo "Repos are not up to date"
             echo "::set-output name=current::'no'"
           else
+            echo "Repos are up to date"
             echo "::set-output name=current::'yes'"
           fi
         fi
