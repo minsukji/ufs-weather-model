@@ -35,14 +35,17 @@ jobs:
 
           echo "This is a pull_request event. Check."
           head_sha=${{ github.event.pull_request.head.sha }}
+          pr_uid=${{ github.event.pull_request.head.owner.login }}
+          echo "pr_uid is $pr_uid"
           git clone ${{ github.event.pull_request.head.repo.git_url }} .
           git checkout $head_sha
           git submodule update --init --recursive
 
           cd ${GITHUB_WORKSPACE}/tests/ci
           pr_number=$(curl -sS -H "$app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
+          echo "pr_number is $pr_number"
           pr_uid=${{ github.event.pull_request.head.owner.login }}
-          echo ${{ github.event.pull_request.head.owner.login }}
+          echo "pr_uid is $pr_uid"
           comment_body="$(./repo-check.sh $pr_uid)"
 
           if [[ -n $comment_body ]]; then
