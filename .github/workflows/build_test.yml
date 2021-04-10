@@ -69,8 +69,8 @@ jobs:
         fi
 
         message="$(curl -sS -H "$app" $url | jq '.message')"
-        printf "Commit message is %s\n" "$message"
         echo "::set-output name=cirun::${message}"
+        printf "Commit message is %s\n" "$message"
 
   setup:
     name: Set up
