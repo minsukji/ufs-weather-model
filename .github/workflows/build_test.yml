@@ -18,6 +18,11 @@ jobs:
       current: ${{ steps.check.outputs.current }}
 
     steps:
+    - name: print github env
+      env:
+        GITHUB_CONTEXT: ${{toJson(github)}}
+      run: echo "$GITHUB_CONTEXT"
+
     - name: Check
       id: check
       run: |
@@ -37,6 +42,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/tests/ci
           pr_number=$(curl -sS -H "$app" https://api.github.com/repos/MinsukJi-NOAA/ufs-weather-model/pulls | ./json_helper.py get_pr $head_sha)
           pr_uid=${{ github.event.pull_request.head.owner.login }}
+          echo ${{ github.event.pull_request.head.owner.login }}
           comment_body="$(./repo-check.sh $pr_uid)"
 
           if [[ -n $comment_body ]]; then
