@@ -40,7 +40,7 @@ jobs:
           url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls
           pr_number=$(curl -sS -H "$app" $url | ./json_helper.py get_pr $head_sha)
           echo "pr_number is $pr_number"
-          pr_uid=${{ github.event.pull_request.head.owner.login }}
+          pr_uid=${{ github.event.pull_request.head.repo.owner.login }}
           echo "pr_uid is $pr_uid"
           comment_body="$(./repo-check.sh $pr_uid)"
 
