@@ -32,6 +32,7 @@ jobs:
 
     - name: Notify the PR author
       run: |
+        cd $GITHUB_WORKSPACE/tests/ci
         comment=$(cat comment_file)
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/
         head_sha=${{ github.event.workflow_run.head_sha }}
