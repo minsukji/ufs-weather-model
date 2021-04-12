@@ -2,7 +2,7 @@ name: Start runners
 
 on:
   workflow_run:
-    workflows: ["Pull request tests"]
+    workflows: ["Pull Request Tests"]
     types:
       - requested
 

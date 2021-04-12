@@ -2,7 +2,7 @@ name: Manage workflows
 
 on:
   workflow_run:
-    workflows: ["Pull request tests"]
+    workflows: ["Pull Request Tests"]
     types:
       - requested
 
