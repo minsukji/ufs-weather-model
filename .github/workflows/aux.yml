@@ -28,7 +28,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: comment_file
-        key: comment-${{ github.env.workflow_run.id }}
+        key: comment-${{ github.event.workflow_run.id }}
 
     - name: Notify the PR author
       run: |
