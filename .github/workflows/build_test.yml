@@ -43,6 +43,7 @@ jobs:
           pr_uid=${{ github.event.pull_request.head.repo.owner.login }}
           echo "pr_uid is $pr_uid"
           comment_body="$(./repo-check.sh $pr_uid)"
+          echo "comment_body is $comment_body"
 
           if [[ -n $comment_body ]]; then
             echo "Repos are not up to date"
