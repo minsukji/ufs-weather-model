@@ -33,9 +33,9 @@ jobs:
     - name: Notify the PR author
       run: |
         comment=$(cat comment_file)
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/
+        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY
         echo "url is $url"
-        head_sha=$(cat ${GITHUB_EVENT_PATH} | jq -r '.workflow_run.head_sha')
+        head_sha=${{ github.event.workflow_run.head_sha }}
         echo "head_sha is $head_sha"
         cd $GITHUB_WORKSPACE/tests/ci
         pr_number=$(curl -sS -H "$app" $url/pulls | ./json_helper.py get_pr $head_sha)
@@ -43,7 +43,6 @@ jobs:
           curl -sS -X POST -H "$app" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
         fi
 
-#        head_sha=${{ github.event.workflow_run.head_sha }}
 #  startrunner:
 #    name: Start ec2 instances
 #    runs-on: ubuntu-20.04
