@@ -61,7 +61,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: comment_file
-        key: comment-$GITHUB_RUN_ID
+        key: comment-${{ github.run_id }}
 
   runcheck:
     name: Check if run-ci is requested
