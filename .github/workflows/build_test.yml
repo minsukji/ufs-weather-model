@@ -1,4 +1,4 @@
-name: Pull request tests
+name: Pull Request Tests
 
 on:
   push:
@@ -21,13 +21,13 @@ jobs:
     - name: Check
       id: check
       run: |
-        if [[ ${{github.event_name}} == push ]]; then
+        if [[ ${{ github.event_name }} == push ]]; then
 
           echo "This is a push event. No need to check."
           echo "::set-output name=current::'yes'"
           comment_body=''
 
-        elif [[ ${{github.event_name}} == pull_request ]]; then
+        elif [[ ${{ github.event_name }} == pull_request ]]; then
 
           echo "This is a pull_request event. Check."
           head_sha=${{ github.event.pull_request.head.sha }}
@@ -35,8 +35,8 @@ jobs:
           git checkout -q $head_sha
           git submodule -q update --init --recursive
 
-          cd ${GITHUB_WORKSPACE}/tests/ci
-          url=${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls
+          cd $GITHUB_WORKSPACE/tests/ci
+          url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls
           pr_number=$(curl -sS -H "$app" $url | ./json_helper.py get_pr $head_sha)
           pr_uid=${{ github.event.pull_request.head.owner.login }}
           comment_body="$(./repo-check.sh $pr_uid 2>/dev/null)"
@@ -51,11 +51,13 @@ jobs:
 
         fi
 
-#    - name: Cache
-#      uses: actions/cache@v2
-#      with:
-#        path:
-#        key:
+        printf %s "$comment_body" > comment_file
+
+    - name: Cache repocheck comment
+      uses: actions/cache@v2
+      with:
+        path: comment_file
+        key: comment-$GITHUB_RUN_ID
 
   runcheck:
     name: Check if run-ci is requested
