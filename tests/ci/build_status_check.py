@@ -21,7 +21,7 @@ def update_url_data(response, job_name):
 
 def main():
 
-  time.sleep(90) # give enough time for jobs to start!
+  time.sleep(60) # give enough time for jobs to start!
   url = sys.stdin.read()
   job_name = sys.argv[1]
   token = os.environ.get('AUTH')
