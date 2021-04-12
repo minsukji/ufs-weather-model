@@ -21,7 +21,7 @@ jobs:
         AUTH: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd $GITHUB_WORKSPACE/tests/ci
-        conclusion=$(echo ${{ github.event.workflow_run.jobs_url }} | ./build_status_check.py "Check if repos are current")
+        conclusion=$(echo ${{ github.event.workflow_run.jobs_url }} | ./build_status_check.py "Check if repos are up to date")
         echo $conclusion
 
     - name: Retrieve repocheck comment
