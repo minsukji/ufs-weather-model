@@ -25,7 +25,12 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/tests/ci
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
-        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url ${{ github.event.head.sha }})
+        if [[ ${{github.event_name}} == pull_request ]]; then
+          head_sha=${{github.event.pull_request.head.sha}}
+        elif [[ ${{github.event_name}} == push ]]; then
+          head_sha=${{github.event.after}}
+        fi
+        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $head_sha)
         conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
         if [[ $conclusion == "failure" ]]; then
           exit 1
