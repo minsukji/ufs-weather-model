@@ -18,50 +18,42 @@ jobs:
       current: ${{ steps.check.outputs.current }}
 
     steps:
-    - name: Check
-      id: check
+    - name: Check out codes
+      uses: actions/checkout@v2
+
+    - name: Wait until repocheck in aux is complete
       run: |
-        if [[ ${{ github.event_name }} == push ]]; then
-
-          echo "This is a push event. No need to check."
-          echo "::set-output name=current::'yes'"
-          comment_body=''
-
-        elif [[ ${{ github.event_name }} == pull_request ]]; then
-
-          echo "This is a pull_request event. Check."
-          head_sha=${{ github.event.pull_request.head.sha }}
-          echo "head_sha is $head_sha"
-          git clone ${{ github.event.pull_request.head.repo.git_url }} .
-          git checkout $head_sha
-          git submodule update --init --recursive
-
-          cd $GITHUB_WORKSPACE/tests/ci
-          url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls
-          pr_number=$(curl -sS -H "$app" $url | ./json_helper.py get_pr $head_sha)
-          echo "pr_number is $pr_number"
-          pr_uid=${{ github.event.pull_request.head.repo.owner.login }}
-          echo "pr_uid is $pr_uid"
-          comment_body="$(./repo-check.sh $pr_uid)"
-          echo "comment_body is $comment_body"
-
-          if [[ -n $comment_body ]]; then
-            echo "Repos are not up to date"
-            echo "::set-output name=current::'no'"
-          else
-            echo "Repos are up to date"
-            echo "::set-output name=current::'yes'"
-          fi
-
+        cd $GITHUB_WORKSPACE/tests/ci
+        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
+        if [[ ${{github.event_name}} == pull_request ]]; then
+          head_sha=${{github.event.pull_request.head.sha}}
+        elif [[ ${{github.event_name}} == push ]]; then
+          head_sha=${{github.event.after}}
+        fi
+        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $head_sha)
+        echo "jobs_url is $jobs_url"
+        conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
+        if [[ $conclusion == "failure" ]]; then
+          exit 1
+        else
+          sleep 20
         fi
 
-        printf %s "$comment_body" > comment_file
-
-    - name: Cache repocheck comment
+    - name: Retrieve repocheck result
       uses: actions/cache@v2
       with:
-        path: comment_file
-        key: comment-${{ github.run_id }}
+        path: repocheck_file
+        key: repocheck-${{ github.run_id }}
+
+    - name: Set the result flag
+      id: check
+      run: |
+        repocheck_result=$(cat repocheck_file)
+        if [[ $repocheck_result == success ]]; then
+          echo "::set-output name=current::yes"
+        elif [[ $repocheck_result == failure ]]; then
+          echo "::set-output name=current::no"
+        fi
 
   runcheck:
     name: Check if run-ci is requested
@@ -83,14 +75,19 @@ jobs:
         fi
 
         message="$(curl -sS -H "$app" $url | jq '.message')"
-        echo "::set-output name=cirun::${message}"
+        echo $message | grep run-ci >/dev/null 2>&1 && d=$? || d=$?
+        if [[ $d -eq 0 ]]; then
+          echo "::set-output name=cirun::yes"
+        elif [[ $d -eq 1 ]]; then
+          echo "::set-output name=cirun::no"
+        fi
         printf "Commit message is %s\n" "$message"
 
   setup:
     name: Set up
     needs: [repocheck,runcheck]
     runs-on: ubuntu-20.04
-    if: contains(needs.runcheck.outputs.cirun, 'run-ci') && contains(needs.repocheck.outputs.current, 'yes')
+    if: needs.repocheck.outputs.current == 'yes' && needs.runcheck.outputs.cirun == 'yes'
 
     outputs:
       bld: ${{ steps.parse.outputs.bld }}

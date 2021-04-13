@@ -8,43 +8,57 @@ env:
   app: "Accept:application/vnd.github.v3+json"
 
 jobs:
-  postcomment:
-    name: Post repocheck comments
+  repocheck:
+    name: Aux check if repos are up to date
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Check out codes
-      uses: actions/checkout@v2
-
-    - name: Wait until repocheck is complete
-      env:
-        AUTH: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check currency and post comment
       run: |
-        cd $GITHUB_WORKSPACE/tests/ci
-        conclusion=$(echo ${{ github.event.workflow_run.jobs_url }} | ./build_status_check.py "Check if repos are up to date")
-        echo $conclusion
+        if [[ ${{ github.event.workflow_run.event }} == push ]]; then
+          echo "This is a push event. No need to check."
+          comment=''
+          echo "comment is $comment"
+        elif [[ ${{ github.event.workflow_run.event }} == pull_request ]]; then
+          echo "This is a pull_request event. Check."
+          head_sha=${{ github.event.workflow_run.head_sha }}
+          echo "head_sha is $head_sha"
 
-    - name: Retrieve repocheck comment
-      uses: actions/cache@v2
-      with:
-        path: comment_file
-        key: comment-${{ github.event.workflow_run.id }}
+          git clone -q ${{ github.event.workflow_run.head_repository.html_url }} .
+          git checkout -q $head_sha
+          git submodule -q update --init --recursive
 
-    - name: Notify the PR author
-      run: |
-        comment=$(cat comment_file)
-        echo "comment is $comment"
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY
-        echo "url is $url"
-        head_sha=${{ github.event.workflow_run.head_sha }}
-        echo "head_sha is $head_sha"
-        cd $GITHUB_WORKSPACE/tests/ci
-        pr_number=$(curl -sS -H "$app" $url/pulls | ./json_helper.py get_pr $head_sha)
-        echo "pr_number is $pr_number"
-        if [[ -n $comment && -n $pr_number ]]; then
-          curl -sS -X POST -H "$app" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
+          cd $GITHUB_WORKSPACE/tests/ci
+          url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY
+          pr_number=$(curl -sS -H "$app" $url/pulls | ./json_helper.py get_pr $head_sha)
+          echo "pr_number is $pr_number"
+          pr_uid=${{ github.event.workflow_run.head_repository.owner.login }}
+          echo "pr_uid is $pr_uid"
+          comment="$(./repo-check.sh $pr_uid 2>/dev/null)"
+          echo "comment is $comment"
         fi
 
+        if [[ -n $comment ]]; then
+          curl -sS -X POST -H "$app" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
+          echo -n "failure" >repocheck_file
+        else
+          echo -n "success" >repocheck_file
+        fi
+
+    - name: Cache repocheck comment
+      uses: actions/cache@v2
+      with:
+        path: repocheck_file
+        key: repocheck-${{ github.event.workflow_run.id }}
+#
+#    - name: Wait until repocheck is complete
+#      env:
+#        AUTH: ${{ secrets.GITHUB_TOKEN }}
+#      run: |
+#        cd $GITHUB_WORKSPACE/tests/ci
+#        conclusion=$(echo ${{ github.event.workflow_run.jobs_url }} | ./build_status_check.py "Check if repos are up to date")
+#        echo $conclusion
+#
 #  startrunner:
 #    name: Start ec2 instances
 #    runs-on: ubuntu-20.04
