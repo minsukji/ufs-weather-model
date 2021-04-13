@@ -24,10 +24,10 @@ def main():
   time.sleep(80) # give enough time for jobs to start!
   url = sys.stdin.read()
   job_name = sys.argv[1]
-  token = os.environ.get('AUTH')
+  #token = os.environ.get('AUTH')
 
   request = Request(url)
-  request.add_header('Authorization', 'token %s' % token)
+  #request.add_header('Authorization', 'token %s' % token)
 
   status="not-completed"
   no_completed_jobs = 0

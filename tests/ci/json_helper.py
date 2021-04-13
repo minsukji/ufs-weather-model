@@ -24,6 +24,10 @@ def cancel_workflow(data):
 
   return wfs
 
+def get_jobs_url(data, sha):
+  dummy=[x["jobs_url"] for x in data if x["head_sha"]==sha and x["name"]=="Test Helpers"]
+  return dummy
+
 def get_pr_no(data, hs):
     prn=[x["number"] for x in data if x["head"]["sha"]==hs]
     return prn
@@ -51,6 +55,10 @@ def main():
       print("")
     else:
       print(*wfs)
+  elif sys.argv[1]=="get_jobs_url":
+    data = json.load(sys.stdin)["workflow_runs"]
+    dummy=get_jobs_url(data, sys.argv[2])
+    print(*dummy)
   else:
     print("ERROR")
 
