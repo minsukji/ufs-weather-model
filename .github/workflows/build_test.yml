@@ -31,6 +31,7 @@ jobs:
           head_sha=${{github.event.after}}
         fi
         jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $head_sha)
+        echo "jobs_url is $jobs_url"
         conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
         if [[ $conclusion == "failure" ]]; then
           exit 1
