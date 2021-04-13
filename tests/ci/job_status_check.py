@@ -26,14 +26,14 @@ def main():
   job_name = sys.argv[1]
   #token = os.environ.get('AUTH')
 
-  request = Request(url)
+  #request = Request(url)
   #request.add_header('Authorization', 'token %s' % token)
 
   status="not-completed"
   no_completed_jobs = 0
 
   while status != "completed":
-    response = urlopen(request)
+    response = urlopen(url)
     data, indices = update_url_data(response, job_name)
 
     for i in indices:
