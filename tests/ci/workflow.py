@@ -3,15 +3,15 @@
 import sys
 import json
 from datetime import datetime, timedelta
-from urllib.request import urlopen, Request
+#from urllib.request import urlopen, Request
+#
+#with open('workflow.json') as json_file:
+#  data = json.load(json_file)['workflow_runs']
 
-with open('workflow.json') as json_file:
-  data = json.load(json_file)['workflow_runs']
-
-for x in data:
-  if x['name'] == "Test Helpers":
-    date_obj = datetime.strptime(x['created_at'], '%Y-%m-%dT%H:%M:%SZ')
-
+#for x in data:
+#  if x['name'] == "Test Helpers":
+#    date_obj = datetime.strptime(x['created_at'], '%Y-%m-%dT%H:%M:%SZ')
+#
 
 def get_my_time(data, id):
    return datetime.strptime([x["created_at"] for x in data if x["id"]==id][0], "%Y-%m-%dT%H:%M:%SZ")
