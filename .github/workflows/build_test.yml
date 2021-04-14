@@ -44,6 +44,10 @@ jobs:
     - name: Set the result flag
       id: check
       run: |
+        cd $GITHUB_WORKSPACE
+        pwd
+        ls -alF
+        cd $GITHUB_WORKSPACE/tests/ci
         pwd
         ls -alF
         cat cf2
