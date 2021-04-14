@@ -25,7 +25,7 @@ def cancel_workflow(data):
   return wfs
 
 def get_jobs_url(data, sha):
-  dummy=[x["jobs_url"] for x in data if x["head_sha"]==sha and x["name"]=="Test Helpers"]
+  dummy=[x["jobs_url"] for x in data if x["id"]==int(sha)]
   return dummy
 
 def get_pr_no(data, hs):
