@@ -41,16 +41,16 @@ jobs:
     - name: Retrieve repocheck result
       uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/cf2
+        path: tmp/cf2
         key: repocheck-${{ github.run_id }}
 
     - name: Set flag
       run: |
         pwd
         ls -alF
-        cat cf2
-        cd $GITHUB_WORKSPACE
-        ls -alF
+        ls -alF /tmp
+        cat /tmp/cf2
+        
 
 #        repocheck_result=$(cat cf2)
 #        if [[ $repocheck_result == success ]]; then
