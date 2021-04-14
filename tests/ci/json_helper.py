@@ -57,8 +57,8 @@ def main():
       print(*wfs)
   elif sys.argv[1]=="get_jobs_url":
     data = json.load(sys.stdin)["workflow_runs"]
-    jurl=get_jobs_url(data, sys.argv[2])
-    print(*jurl)
+    dmmmy=get_jobs_url(data, sys.argv[2])
+    print(*dummy)
   else:
     print("ERROR")
 
