@@ -38,7 +38,7 @@ jobs:
     - name: Retrieve repocheck result
       uses: actions/cache@v2
       with:
-        path: repocheck_file
+        path: cf2
         key: repocheck-${{ github.run_id }}
 
     - name: Set the result flag
@@ -46,7 +46,8 @@ jobs:
       run: |
         pwd
         ls -alF
-        repocheck_result=$(cat repocheck_file)
+        cat cf2
+        repocheck_result=$(cat cf2)
         if [[ $repocheck_result == success ]]; then
           echo "::set-output name=current::yes"
         elif [[ $repocheck_result == failure ]]; then
