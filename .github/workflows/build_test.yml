@@ -44,6 +44,8 @@ jobs:
     - name: Set the result flag
       id: check
       run: |
+        pwd
+        ls -alF
         repocheck_result=$(cat repocheck_file)
         if [[ $repocheck_result == success ]]; then
           echo "::set-output name=current::yes"
