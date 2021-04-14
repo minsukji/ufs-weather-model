@@ -36,20 +36,21 @@ jobs:
 #        fi
 #
     - name: sleep
-      run: sleep 90
+      run: sleep 60
 
     - name: Retrieve repocheck result
       uses: actions/cache@v2
       with:
-        path: cf2
+        path: ${{ github.workspace }}/cf2
         key: repocheck-${{ github.run_id }}
 
     - name: Set flag
       run: |
-        cd $GITHUB_WORKSPACE
         pwd
         ls -alF
         cat cf2
+        cd $GITHUB_WORKSPACE
+        ls -alF
 
 #        repocheck_result=$(cat cf2)
 #        if [[ $repocheck_result == success ]]; then
