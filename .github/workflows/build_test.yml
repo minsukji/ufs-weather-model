@@ -21,19 +21,22 @@ jobs:
     - name: Check out codes
       uses: actions/checkout@v2
 
-    - name: Wait until repocheck in aux is complete
-      run: |
-        cd $GITHUB_WORKSPACE/tests/ci
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
-        workflow_id=$(curl -sS -H "$app" $url | ./workflow.py ${{ github.run_id }})
-        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
-        echo "jobs_url is $jobs_url"
-        conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
-        if [[ $conclusion == "failure" ]]; then
-          exit 1
-        else
-          sleep 20
-        fi
+#    - name: Wait until repocheck in aux is complete
+#      run: |
+#        cd $GITHUB_WORKSPACE/tests/ci
+#        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
+#        workflow_id=$(curl -sS -H "$app" $url | ./workflow.py ${{ github.run_id }})
+#        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
+#        echo "jobs_url is $jobs_url"
+#        conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
+#        if [[ $conclusion == "failure" ]]; then
+#          exit 1
+#        else
+#          sleep 20
+#        fi
+#
+    - name: sleep
+      run: sleep 120
 
     - name: Retrieve repocheck result
       uses: actions/cache@v2
