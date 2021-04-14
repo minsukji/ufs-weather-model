@@ -39,16 +39,18 @@ jobs:
         fi
 
         if [[ -n $comment ]]; then
+          cd $GITHUB_WORKSPACE
           curl -sS -X POST -H "$app" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
           echo -n "failure" >cf2
         else
+          cd $GITHUB_WORKSPACE
           echo -n "success" >cf2
         fi
 
     - name: Cache repocheck comment
       uses: actions/cache@v2
       with:
-        path: cf2
+        path: ${{ github.workspace }}/cf2
         key: repocheck-${{ github.event.workflow_run.id }}
 #
 #    - name: Wait until repocheck is complete
