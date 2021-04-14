@@ -42,6 +42,7 @@ jobs:
         key: repocheck-${{ github.run_id }}
 
     - name: Set repocheck currency flag
+      id: check
       run: |
         repocheck_result=$(cat repocheck_file)
         if [[ $repocheck_result == success ]]; then
