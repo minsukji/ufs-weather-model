@@ -18,41 +18,46 @@ jobs:
       current: ${{ steps.check.outputs.current }}
 
     steps:
-    - name: Check out codes
-      uses: actions/checkout@v2
-
-    - name: Wait until repocheck in aux is complete
-      run: |
-        cd $GITHUB_WORKSPACE/tests/ci
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
-        workflow_id=$(curl -sS -H "$app" $url | ./workflow.py ${{ github.run_id }})
-        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
-        echo "jobs_url is $jobs_url"
-        conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
-        if [[ $conclusion == "failure" ]]; then
-          exit 1
-        else
-          sleep 20
-        fi
+#    - name: Check out codes
+#      uses: actions/checkout@v2
+#
+#    - name: Wait until repocheck in aux is complete
+#      run: |
+#        cd $GITHUB_WORKSPACE/tests/ci
+#        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
+#        workflow_id=$(curl -sS -H "$app" $url | ./workflow.py ${{ github.run_id }})
+#        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
+#        echo "jobs_url is $jobs_url"
+#        conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
+#        if [[ $conclusion == "failure" ]]; then
+#          exit 1
+#        else
+#          sleep 20
+#        fi
+#
+    - name: sleep
+      run: sleep 90
 
     - name: Retrieve repocheck result
       uses: actions/cache@v2
       with:
-        path: cf2
+        path: ${{ github.workspace }}/cf2
         key: repocheck-${{ github.run_id }}
 
-    - name: Set the result flag
-      id: check
+    - name: Set flag
       run: |
         pwd
         ls -alF
         cat cf2
-        repocheck_result=$(cat cf2)
-        if [[ $repocheck_result == success ]]; then
-          echo "::set-output name=current::yes"
-        elif [[ $repocheck_result == failure ]]; then
-          echo "::set-output name=current::no"
-        fi
+        cd $GITHUB_WORKSPACE
+        ls -alF
+
+#        repocheck_result=$(cat cf2)
+#        if [[ $repocheck_result == success ]]; then
+#          echo "::set-output name=current::yes"
+#        elif [[ $repocheck_result == failure ]]; then
+#          echo "::set-output name=current::no"
+#        fi
 
   runcheck:
     name: Check if run-ci is requested
