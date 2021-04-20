@@ -26,7 +26,8 @@ jobs:
         cd $GITHUB_WORKSPACE/tests/ci
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
         workflow_id=$(curl -sS -H "$app" $url | ./workflow.py ${{ github.run_id }})
-        jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
+        jobs_url=$url/$workflow_id/jobs
+        #jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
         echo "jobs_url is $jobs_url"
         conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
         if [[ $conclusion == "failure" ]]; then
@@ -97,7 +98,6 @@ jobs:
     - name: Collect cases to run
       id: parse
       run: |
-        echo "GITHUB_RUN_ID is $GITHUB_RUN_ID"
         cd ${GITHUB_WORKSPACE}/tests/ci
         IFS='|'; parsed_output=( $(./setup.py) )
         bld_=${parsed_output[0]}
