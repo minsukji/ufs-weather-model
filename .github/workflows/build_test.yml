@@ -7,7 +7,7 @@ on:
     branches: ['feature/PRCheck']
 
 env:
-  app: "Accept:application/vnd.github.v3+json"
+  app: Accept:application/vnd.github.v3+json
 
 jobs:
   repocheck:
@@ -36,8 +36,6 @@ jobs:
         conclusion=$(echo $jobs_url | ./check_status.py completion "Repo check")
         if [[ $conclusion == "failure" ]]; then
           exit 1
-        else
-          sleep 20
         fi
 
     - uses: actions/cache@v2
@@ -102,7 +100,7 @@ jobs:
       id: parse
       run: |
         cd ${GITHUB_WORKSPACE}/tests/ci
-        IFS='|'; parsed_output=( $(./setup.py) )
+        IFS='|'; parsed_output=( $(./setup.py cases) )
         bld_=${parsed_output[0]}
         test_=${parsed_output[1]}
         img_=ci-test-weather
@@ -157,11 +155,34 @@ jobs:
         name: ${{ matrix.bld_set }}.artifact.tar.bz2
         path: tests/ci/artifact.tar.bz2
 
+  waitec2:
+    name: Wait for ec2 instances to start
+    needs: build
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/id_file
+        key: helperid-${{ github.run_id }}
+
+    - name: Check if ec2 instances started
+      run: |
+        helper_id=$(cat ~/id_file)
+        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
+        ec2_started=$(echo -n $url | ./check_status.py startrunner)
+        if [ $ec2_started != 'success' ]; then
+          echo "ec2 instances did not start"
+          exit 1
+        fi
+
   utest:
     name: Test ${{ matrix.test_set }}
     needs: [setup,build]
-    #runs-on: self-hosted
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
+    #runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false

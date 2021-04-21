@@ -5,7 +5,7 @@ from urllib.request import urlopen, Request
 from datetime import datetime, timedelta
 
 def check_build(request, no_builds):
-  """ Check if all build jobs are completed successfully
+  """Check if all build jobs are completed successfully.
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/jobs
   """
   all_completed = False
@@ -23,7 +23,7 @@ def check_build(request, no_builds):
 
 
 def check_completion(request, job_name):
-  """ Check if a job is completed successfully
+  """Check if a job is completed successfully.
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/jobs
   """
   completed = False
@@ -39,7 +39,7 @@ def check_completion(request, job_name):
 
 
 def check_test(request):
-  """ Check if a workflow run is completed
+  """Wait for a workflow run to be completed.
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}
   """
   completed = False
@@ -51,7 +51,7 @@ def check_test(request):
 
 
 def check_ec2(url, request, myid):
-  """ Check if all previous workflow runs started and stopped ec2 instances
+  """Wait for all previous workflow runs to finish using ec2 instances.
   API endpoint: api.github.com/repos/{owner}/{repo}/actions/runs
   """
   response = urlopen(request)
@@ -99,20 +99,12 @@ def main():
     pass
 
   if sys.argv[1] == "build":
-    no_builds = int(sys.argv[2])
-    if check_build(request, no_builds):
-      print("success")
-    else:
-      print("failure")
+    print("success") if check_build(request, int(sys.argv[2])) else print("failure")
+  elif sys.argv[1] == "completion":
+    print("success") if check_completion(request, sys.argv[2]) else print("failure")
   elif sys.argv[1] == "ec2":
     check_ec2(url, request, int(sys.argv[2]))
   elif sys.argv[1] == "test":
     check_test(request)
-  elif sys.argv[1] == "completion":
-    if check_completion(request, sys.argv[2]):
-      print("success")
-    else:
-      print("failure")
-
 
 if __name__ == "__main__": main()

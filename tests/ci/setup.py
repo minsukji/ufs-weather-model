@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import json
 
 def main():
@@ -35,6 +36,9 @@ def main():
       tj['test_set'].append(case)
       tj['include'].append(aj)
 
-  print(json.dumps(bj),"|",json.dumps(tj))
+  if sys.argv[1] == "cases":
+    print(json.dumps(bj),"|",json.dumps(tj))
+  elif sys.argv[1] == "no_builds":
+    print(len(bj['bld_set']))
 
 if __name__ == '__main__': main()
