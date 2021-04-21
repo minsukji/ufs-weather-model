@@ -173,7 +173,7 @@ jobs:
         cd ${{ github.workspace }}/tests/ci
         helper_id=$(cat ~/id_file)
         url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
-        ec2_started=$(echo -n $url | ./check_status.py startrunner)
+        ec2_started=$(echo -n $url | ./check_status.py completion "Start runners")
         if [ $ec2_started != 'success' ]; then
           echo "ec2 instances did not start"
           exit 1
@@ -181,7 +181,7 @@ jobs:
 
   utest:
     name: Test ${{ matrix.test_set }}
-    needs: [setup,build]
+    needs: [setup,build,waitec2]
     runs-on: self-hosted
     #runs-on: ubuntu-20.04
 
