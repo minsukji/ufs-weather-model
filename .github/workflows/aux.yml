@@ -5,15 +5,28 @@ on:
     types:
       - requested
 env:
-  app: "Accept:application/vnd.github.v3+json"
+  app: Accept:application/vnd.github.v3+json
 
 jobs:
+  pre:
+    name: Preprocess
+    runs-on: ubuntu-20.-4
+
+    steps:
+    - name: Share helper id
+      run: echo -n ${{ github.run_id }} >~/id_file
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/id_file
+        key: helperid-${{ github.event.workflow_run.id }}
+
   repocheck:
-    name: Aux check if repos are up to date
+    name: Repo check
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Check currency and post comment
+    - name: Check up-to-dateness and post comment
       run: |
         if [[ ${{ github.event.workflow_run.event }} == push ]]; then
           echo "This is a push event. No need to check."
@@ -30,7 +43,7 @@ jobs:
 
           cd $GITHUB_WORKSPACE/tests/ci
           url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY
-          pr_number=$(curl -sS -H "$app" $url/pulls | ./json_helper.py get_pr $head_sha)
+          pr_number=$(curl -sS -H $app $url/pulls | jq -r '.[] | select(.head.sha == "'"$head_sha"'") | .number')
           echo "pr_number is $pr_number"
           pr_uid=${{ github.event.workflow_run.head_repository.owner.login }}
           echo "pr_uid is $pr_uid"
@@ -39,40 +52,13 @@ jobs:
         fi
 
         if [[ -n $comment ]]; then
-          curl -sS -X POST -H "$app" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
-          echo -n "failure" >${{ github.workspace }}/repocheck_file
+          curl -sS -X POST -H $app -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
+          echo -n "failure" >~/repocheck_file
         else
-          echo -n "success" >${{ github.workspace }}/repocheck_file
+          echo -n "success" >~/repocheck_file
         fi
 
-    - name: Cache repocheck comment
-      uses: actions/cache@v2
+    - uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/repocheck_file
+        path: ~/repocheck_file
         key: repocheck-${{ github.event.workflow_run.id }}
-#
-#
-#    - name: Wait until repocheck is complete
-#      env:
-#        AUTH: ${{ secrets.GITHUB_TOKEN }}
-#      run: |
-#        cd $GITHUB_WORKSPACE/tests/ci
-#        conclusion=$(echo ${{ github.event.workflow_run.jobs_url }} | ./build_status_check.py "Check if repos are up to date")
-#        echo $conclusion
-#
-#  startrunner:
-#    name: Start ec2 instances
-#    runs-on: ubuntu-20.04
-#
-#    steps:
-#    - name:
-#      run:
-#
-#  stoprunner:
-#    name: Stop ec2 instances
-#    runs-on: ubuntu-20.04
-#    needs: startrunner
-#
-#    steps:
-#    - name:
-#      run:

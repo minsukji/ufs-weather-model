@@ -18,34 +18,37 @@ jobs:
       current: ${{ steps.check.outputs.current }}
 
     steps:
-    - name: Check out codes
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+
+    - name: Wait for caching source
+      run: sleep 30
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/id_file
+        key: helperid-${{ github.run_id }}
 
     - name: Wait until repocheck in aux is complete
       run: |
-        cd $GITHUB_WORKSPACE/tests/ci
-        url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs
-        workflow_id=$(curl -sS -H "$app" $url | ./workflow.py ${{ github.run_id }})
-        jobs_url=$url/$workflow_id/jobs
-        #jobs_url=$(curl -sS -H "$app" $url | ./json_helper.py get_jobs_url $workflow_id)
-        echo "jobs_url is $jobs_url"
-        conclusion=$(echo $jobs_url | ./job_status_check.py "Aux check if repos are up to date")
+        helper_id=$(cat ~/id_file)
+        cd ${{ github.workspace }}/tests/ci
+        jobs_url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$helper_id/jobs
+        conclusion=$(echo $jobs_url | ./check_status.py completion "Repo check")
         if [[ $conclusion == "failure" ]]; then
           exit 1
         else
           sleep 20
         fi
 
-    - name: Retrieve repocheck result
-      uses: actions/cache@v2
+    - uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/repocheck_file
+        path: ~/repocheck_file
         key: repocheck-${{ github.run_id }}
 
     - name: Set repocheck currency flag
       id: check
       run: |
-        repocheck_result=$(cat repocheck_file)
+        repocheck_result=$(cat ~/repocheck_file)
         if [[ $repocheck_result == success ]]; then
           echo "::set-output name=current::yes"
         elif [[ $repocheck_result == failure ]]; then
