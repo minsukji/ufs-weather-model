@@ -45,7 +45,7 @@ jobs:
           git checkout -q $head_sha
           git submodule -q update --init --recursive
 
-          cd $GITHUB_WORKSPACE/tests/ci
+          cd ${{ github.workspace }}/tests/ci
           url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY
           pr_number=$(curl -sS -H $app $url/pulls | jq -r '.[] | select(.head.sha == "'"$head_sha"'") | .number')
           echo "pr_number is $pr_number"
@@ -79,6 +79,7 @@ jobs:
     - name: Check all builds are complete and successful
       id: current
       run: |
+        cd ${{ github.workspace }}/tests/ci
         eval url=$base_url/${{ github.event.workflow_run.id }}/jobs
         b_r=$(echo -n $url | ./check_status.py build $(./setup.py no_builds))
         if [ $b_r == 'success' ]; then
@@ -91,6 +92,7 @@ jobs:
       id: previous
       if: steps.current.outputs.check == 'pass'
       run: |
+        cd ${{ github.workspace }}/tests/ci
         eval url=$base_url
         echo -n $url | ./check_status.py ec2 ${{ github.run_id }}
 
@@ -126,6 +128,7 @@ jobs:
 
     - name: Check all tests are complete
       run: |
+        cd ${{ github.workspace }}/tests/ci
         eval url=$base_url/${{ github.event.workflow_run.id }}
         echo $url | ./check_status.py test
 
