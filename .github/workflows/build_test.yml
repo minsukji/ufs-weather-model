@@ -193,6 +193,14 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.test) }}
 
     steps:
+    - name: Clean up in case of left-over files
+      run: |
+        rm -f artifact.tar.bz2 ${{ needs.setup.outputs.img }}.tar.gz
+        docker ps -a --filter "name=my-container" | grep my-container >/dev/null 2>&1 \
+          && docker rm my-container
+        docker image ls | grep ${{ needs.setup.outputs.img }} >/dev/null 2>&1 \
+          && docker rmi ${{ needs.setup.outputs.img }}
+
     - uses: actions/download-artifact@v2
       with:
         name: ${{ matrix.artifact }}.artifact.tar.bz2
@@ -206,9 +214,8 @@ jobs:
     - name: Run utest
       run: ./ci.sh -n ${{ matrix.name }} -r ${{ matrix.case }}
 
-    - name: Upload memory usage file
+    - uses: actions/upload-artifact@v2
       if: ${{ always() }}
-      uses: actions/upload-artifact@v2
       with:
         name: memory_stat_${{ matrix.test_set }}
         path: memory_stat
@@ -220,5 +227,4 @@ jobs:
         docker stop my-container && docker rm  my-container \
           && docker rmi ${{ needs.setup.outputs.img }}:latest
         docker volume rm DataVolume
-        #docker rmi minsukjinoaa/fv3-input-data:input-data-20210115
         rm -f memory_stat
