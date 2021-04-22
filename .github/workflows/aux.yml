@@ -37,7 +37,6 @@ jobs:
         if [[ ${{ github.event.workflow_run.event }} == push ]]; then
           echo "This is a push event. No need to check."
           comment=''
-          echo "comment is $comment"
         elif [[ ${{ github.event.workflow_run.event }} == pull_request ]]; then
           echo "This is a pull_request event. Check."
           head_sha=${{ github.event.workflow_run.head_sha }}
