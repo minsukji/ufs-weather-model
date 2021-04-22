@@ -1,13 +1,12 @@
 name: Pull Request Tests
-
 on:
   push:
     branches: ['feature/PRCheck']
   pull_request:
     branches: ['feature/PRCheck']
-
 env:
   app: Accept:application/vnd.github.v3+json
+
 
 jobs:
   repocheck:
@@ -53,6 +52,7 @@ jobs:
           echo "::set-output name=current::no"
         fi
 
+
   runcheck:
     name: Check if run-ci is requested
     runs-on: ubuntu-20.04
@@ -66,7 +66,8 @@ jobs:
       run: |
         if [[ ${{github.event_name}} == pull_request ]]; then
           sha=${{github.event.pull_request.head.sha}}
-          url=$(echo ${{github.event.pull_request.head.repo.git_commits_url}} | sed "s:{/sha}:/$sha:")
+          url=$(echo ${{github.event.pull_request.head.repo.git_commits_url}} \
+            | sed "s:{/sha}:/$sha:")
         elif [[ ${{github.event_name}} == push ]]; then
           sha=${{github.event.after}}
           url=$(echo ${{github.event.repository.git_commits_url}} | sed "s:{/sha}:/$sha:")
@@ -81,8 +82,9 @@ jobs:
         fi
         printf "Commit message is %s\n" "$message"
 
+
   setup:
-    name: Set up
+    name: Configure cases to run
     needs: [repocheck,runcheck]
     runs-on: ubuntu-20.04
     if: needs.repocheck.outputs.current == 'yes' && needs.runcheck.outputs.cirun == 'yes'
@@ -93,13 +95,12 @@ jobs:
       img: ${{ steps.parse.outputs.img }}
 
     steps:
-    - name: Checkout codes
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
     - name: Collect cases to run
       id: parse
       run: |
-        cd ${GITHUB_WORKSPACE}/tests/ci
+        cd ${{ github.workspace }}/tests/ci
         IFS='|'; parsed_output=( $(./setup.py cases) )
         bld_=${parsed_output[0]}
         test_=${parsed_output[1]}
@@ -116,6 +117,7 @@ jobs:
         echo "repocheck: ${{needs.repocheck.outputs.current}}"
         echo "runcheck: ${{needs.runcheck.outputs.cirun}}"
 
+
   build:
     name: Build ${{ matrix.bld_set }}
     needs: setup
@@ -126,8 +128,7 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.bld) }}
 
     steps:
-    - name: Checkout codes
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
 
@@ -146,16 +147,17 @@ jobs:
     - name: Prepare artifacts
       run: |
         cd tests/ci
-        sudo docker save ${{ needs.setup.outputs.img }} | gzip >${{ needs.setup.outputs.img }}.tar.gz
+        sudo docker save ${{ needs.setup.outputs.img }} \
+          | gzip >${{ needs.setup.outputs.img }}.tar.gz
         tar cvjf artifact.tar.bz2 ${{ needs.setup.outputs.img }}.tar.gz ci.sh ci.test
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.bld_set }}.artifact.tar.bz2
         path: tests/ci/artifact.tar.bz2
 
-  waitec2:
+
+  wait:
     name: Wait for ec2 instances to start
     needs: build
     runs-on: ubuntu-20.04
@@ -179,9 +181,10 @@ jobs:
           exit 1
         fi
 
+
   utest:
     name: Test ${{ matrix.test_set }}
-    needs: [setup,build,waitec2]
+    needs: [setup,build,wait]
     runs-on: self-hosted
     #runs-on: ubuntu-20.04
 
@@ -190,15 +193,15 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.test) }}
 
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v2
       with:
         name: ${{ matrix.artifact }}.artifact.tar.bz2
 
     - name: Prepare artifacts
       run: |
         tar xvjf artifact.tar.bz2 && rm -f artifact.tar.bz2
-        docker load --input ${{ needs.setup.outputs.img }}.tar.gz && rm -f ${{ needs.setup.outputs.img }}.tar.gz
+        docker load --input ${{ needs.setup.outputs.img }}.tar.gz \
+          && rm -f ${{ needs.setup.outputs.img }}.tar.gz
 
     - name: Run utest
       run: ./ci.sh -n ${{ matrix.name }} -r ${{ matrix.case }}
@@ -214,7 +217,8 @@ jobs:
       if: ${{ always() }}
       run: |
         rm -f ci.sh ci.test
-        docker stop my-container && docker rm  my-container && docker rmi ${{ needs.setup.outputs.img }}:latest
+        docker stop my-container && docker rm  my-container \
+          && docker rmi ${{ needs.setup.outputs.img }}:latest
         docker volume rm DataVolume
         #docker rmi minsukjinoaa/fv3-input-data:input-data-20210115
         rm -f memory_stat

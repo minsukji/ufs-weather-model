@@ -11,6 +11,7 @@ env:
   aws_instance_id: ${{ secrets.AWS_INSTANCE_ID }}
   no_instances: 2
 
+
 jobs:
   pre:
     name: Preprocess
@@ -24,6 +25,7 @@ jobs:
       with:
         path: ~/id_file
         key: helperid-${{ github.event.workflow_run.id }}
+
 
   repocheck:
     name: Repo check
@@ -47,7 +49,8 @@ jobs:
 
           cd ${{ github.workspace }}/tests/ci
           url=$GITHUB_API_URL/repos/$GITHUB_REPOSITORY
-          pr_number=$(curl -sS -H $app $url/pulls | jq -r '.[] | select(.head.sha == "'"$head_sha"'") | .number')
+          pr_number=$(curl -sS -H $app $url/pulls \
+            | jq -r '.[] | select(.head.sha == "'"$head_sha"'") | .number')
           echo "pr_number is $pr_number"
           pr_uid=${{ github.event.workflow_run.head_repository.owner.login }}
           echo "pr_uid is $pr_uid"
@@ -56,7 +59,8 @@ jobs:
         fi
 
         if [[ -n $comment ]]; then
-          curl -sS -X POST -H $app -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
+          curl -sS -X POST -H $app -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            $url/issues/$pr_number/comments -d '{"body": "'"${comment}"'"}'
           echo -n "failure" >~/repocheck_file
         else
           echo -n "success" >~/repocheck_file
@@ -66,6 +70,7 @@ jobs:
       with:
         path: ~/repocheck_file
         key: repocheck-${{ github.event.workflow_run.id }}
+
 
   startrunner:
     name: Start runners
@@ -116,6 +121,7 @@ jobs:
         done
         aws ec2 start-instances --instance-ids $aws_instance_id
         echo "::set-output name=started::yes"
+
 
   stoprunner:
     name: Stop runners
