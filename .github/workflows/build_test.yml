@@ -197,9 +197,9 @@ jobs:
       run: |
         rm -f artifact.tar.bz2 ${{ needs.setup.outputs.img }}.tar.gz
         docker ps -a --filter "name=my-container" | grep my-container >/dev/null 2>&1 \
-          && docker rm my-container
+          && docker rm my-container >/dev/null 2>&1 && d=$? || d=$?
         docker image ls | grep ${{ needs.setup.outputs.img }} >/dev/null 2>&1 \
-          && docker rmi ${{ needs.setup.outputs.img }}
+          && docker rmi ${{ needs.setup.outputs.img }} >/dev/null 2>&1 && d=$? || d=$?
 
     - uses: actions/download-artifact@v2
       with:
